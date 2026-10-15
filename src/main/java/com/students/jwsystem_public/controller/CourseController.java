@@ -17,7 +17,6 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    // 查询所有课程
     @GetMapping("/list")
     public List<Course> getAllCourses() {
         // 从 SecurityContext 获取当前登录用户名
