@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.students.jwsystem_public.mapper.ScoreMapper">
+    <select id="selectByStudentId" resultType="com.students.jwsystem_public.entity.Score">
+        select
+        s.id,
+        s.student_id  as studentId,
+        s.course_id   as courseId,
+        s.score,
+        c.course_name as courseName,
+        c.credit,
+        u.real_name   as teacherName
+        from score s
+        inner join course c on s.course_id = c.id
+        left  join user u on c.teacher_id = u.id
+        where s.student_id = #{studentId}
+        order by c.id
+
+    </select>
 </mapper>
