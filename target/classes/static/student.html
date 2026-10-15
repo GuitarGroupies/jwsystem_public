@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生端</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
+        .header {
+            background: #1890ff; color: #fff; padding: 20px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 20px; }
+        .header button {
+            background: #fff; color: #1890ff; border: none;
+            padding: 8px 16px; border-radius: 4px; cursor: pointer;
+        }
+        .card {
+            background: #fff; padding: 20px; border-radius: 8px;
+            margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .menu { display: flex; gap: 15px; margin-top: 20px; }
+        .menu a {
+            flex: 1; text-align: center; padding: 30px 15px; background: #fff;
+            border-radius: 8px; text-decoration: none; color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 16px;
+        }
+        .menu a:hover { background: #e6f7ff; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🎓 学生端</h1>
+    <button onclick="logout()">退出登录</button>
+</div>
+
+<div class="card">
+    <div id="userInfo">加载中...</div>
+</div>
+
+<div class="menu">
+    <a href="/student-course.html">📚 选课</a>
+    <!-- ✅ 修改：链接到真实的课表页面 -->
+    <a href="/student-schedule.html">📅 我的课表</a>
+    <a href="#">📊 我的成绩</a>
+    <a href="#">👤 个人信息</a>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    fetch('/user/info', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('userInfo').innerText =
+                '欢迎，' + data.realName + '（' + data.username + '） | 角色：' + data.role;
+        })
+        .catch(() => {
+            alert('登录已过期，请重新登录');
+            localStorage.clear();
+            window.location.href = '/login.html';
+        });
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+</script>
+</body>
+</html>

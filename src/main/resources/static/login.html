@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>教务系统 - 登录</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 480px;
+        }
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        /* 身份选择卡片 */
+        .role-select {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .role-card {
+            flex: 1;
+            padding: 20px 10px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        .role-card:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .role-card.active {
+            border-color: #667eea;
+            background: #e6efff;
+        }
+        .role-card .icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .role-card .label {
+            font-size: 14px;
+            color: #555;
+        }
+        .role-card.active .label {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .form-item { margin-bottom: 20px; }
+        .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+        .form-item input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-item input:focus { border-color: #667eea; }
+
+        .captcha-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .captcha-row input { flex: 1; }
+        .captcha-row img {
+            width: 120px;
+            height: 44px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button.login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button.login-btn:hover { background: #5568d3; }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        .message.error { color: #ff4d4f; }
+        .message.success { color: #52c41a; }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>教务系统登录</h2>
+
+    <!-- 身份选择 -->
+    <div class="role-select">
+        <div class="role-card active" data-role="STUDENT" onclick="selectRole(this)">
+            <span class="icon">🎓</span>
+            <span class="label">学生端</span>
+        </div>
+        <div class="role-card" data-role="TEACHER" onclick="selectRole(this)">
+            <span class="icon">👨‍🏫</span>
+            <span class="label">教师端</span>
+        </div>
+        <div class="role-card" data-role="ADMIN" onclick="selectRole(this)">
+            <span class="icon">🛠️</span>
+            <span class="label">管理员端</span>
+        </div>
+    </div>
+
+    <div class="form-item">
+        <label id="usernameLabel">学号</label>
+        <input type="text" id="username" placeholder="请输入学号">
+    </div>
+
+    <div class="form-item">
+        <label>密码</label>
+        <input type="password" id="password" placeholder="请输入密码">
+    </div>
+
+    <div class="form-item">
+        <label>验证码</label>
+        <div class="captcha-row">
+            <input type="text" id="captcha" placeholder="请输入验证码">
+            <img id="captchaImg" src="" alt="验证码" title="点击刷新">
+        </div>
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">学生登录</button>
+
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    const API = 'http://localhost:8080';
+    let currentKey = '';
+    let selectedRole = 'STUDENT';
+
+    // 身份选择
+    function selectRole(el) {
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        selectedRole = el.dataset.role;
+
+        const btn = document.getElementById('loginBtn');
+        const label = document.getElementById('usernameLabel');
+        const usernameInput = document.getElementById('username');
+
+        if (selectedRole === 'STUDENT') {
+            btn.innerText = '学生登录';
+            label.innerText = '学号';
+            usernameInput.placeholder = '请输入学号';
+        } else if (selectedRole === 'TEACHER') {
+            btn.innerText = '教师登录';
+            label.innerText = '工号';
+            usernameInput.placeholder = '请输入工号';
+        } else if (selectedRole === 'ADMIN') {
+            btn.innerText = '管理员登录';
+            label.innerText = '管理员账号';
+            usernameInput.placeholder = '请输入管理员账号';
+        }
+    }
+
+    // 加载验证码
+    async function loadCaptcha() {
+        try {
+            const res = await fetch(`${API}/captcha`);
+            const data = await res.json();
+            currentKey = data.key;
+            document.getElementById('captchaImg').src = data.image;
+        } catch (e) {
+            console.error('加载验证码失败', e);
+        }
+    }
+
+    document.getElementById('captchaImg').onclick = loadCaptcha;
+
+    // 登录
+    async function doLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const captcha = document.getElementById('captcha').value;
+        const msg = document.getElementById('message');
+
+        if (!username || !password || !captcha) {
+            msg.className = 'message error';
+            msg.innerText = '请填写完整信息';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, captcha, key: currentKey })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.role);
+                localStorage.setItem('username', data.username);
+
+                msg.className = 'message success';
+                msg.innerText = '登录成功，正在跳转...';
+
+                setTimeout(() => {
+                    if (data.role === 'ROLE_STUDENT') {
+                        window.location.href = '/student.html';
+                    } else if (data.role === 'ROLE_TEACHER') {
+                        window.location.href = '/teacher.html';
+                    } else if (data.role === 'ROLE_ADMIN') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        alert('未知角色：' + data.role);
+                    }
+                }, 500);
+
+            } else {
+                msg.className = 'message error';
+                msg.innerText = data.message || '登录失败';
+                loadCaptcha();
+                document.getElementById('captcha').value = '';
+            }
+        } catch (e) {
+            msg.className = 'message error';
+            msg.innerText = '请求失败：' + e.message;
+        }
+    }
+
+    document.getElementById('password').onkeydown = (e) => {
+        if (e.key === 'Enter') doLogin();
+    };
+
+    loadCaptcha();
+</script>
+
+</body>
+</html>

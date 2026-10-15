@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.students.jwsystem_public.mapper.CourseSelectionMapper">
+    <insert id="insertSelection" parameterType="com.students.jwsystem_public.entity.CourseSelection">
+        insert into course_selection (student_id, course_id)
+        values (#{studentId}, #{courseId})
+    </insert>
+
+    <update id="incrementSelectedCount">
+        update course
+        set selected_count = selected_count + 1
+        where id = #{courseId}
+    </update>
+
+    <update id="decrementSelectedCount">
+        update course
+        set selected_count = selected_count - 1
+        where id = #{courseId}
+    </update>
+
+    <delete id="deleteSelection">
+        delete from course_selection
+        where student_id = #{studentId}
+        and course_id = #{courseId}
+    </delete>
+
+    <select id="countByStudentAndCourse" resultType="java.lang.Integer">
+        select count(*)
+        from course_selection
+        where student_id = #{studentId}
+        and course_id = #{courseId}
+    </select>
+
+    <select id="selectCourseIdsByStudentId" resultType="java.lang.Long">
+        select course_id
+        from course_selection
+        where student_id = #{studentId}
+    </select>
+
+    <!-- ✅ 新增：查询某学生已选课程的详细信息（连表查 course + user） -->
+    <select id="selectMyCourses" resultType="com.students.jwsystem_public.entity.Course">
+        select
+        c.id,
+        c.course_name     as courseName,
+        c.teacher_id      as teacherId,
+        c.credit,
+        c.capacity,
+        c.selected_count  as selectedCount,
+        u.real_name       as teacherName
+        from course_selection cs
+        inner join course c on cs.course_id = c.id
+        left  join user   u on c.teacher_id = u.id
+        where cs.student_id = #{studentId}
+        order by cs.id desc
+    </select>
+</mapper>
