@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>选课</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
+        .header {
+            background: #1890ff; color: #fff; padding: 20px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 20px; }
+        .header a { color: #fff; text-decoration: none; margin-right: 15px; }
+
+        .tabs {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .tab {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .tab:hover { background: #f0f2f5; }
+        .tab.active { background: #1890ff; color: #fff; font-weight: 600; }
+
+        table {
+            width: 100%; background: #fff; border-radius: 8px;
+            margin-top: 15px; border-collapse: collapse; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; }
+        tr:hover { background: #f5f5f5; }
+        button {
+            padding: 6px 16px; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 14px; margin-right: 5px;
+        }
+        .btn-select { background: #52c41a; color: #fff; }
+        .btn-select:hover { background: #389e0d; }
+        .btn-drop { background: #ff4d4f; color: #fff; }
+        .btn-drop:hover { background: #d9363e; }
+        .tag-selected {
+            display: inline-block; background: #fff1f0; color: #ff4d4f;
+            border: 1px solid #ffccc7; padding: 2px 8px; border-radius: 4px;
+            font-size: 12px; margin-left: 5px;
+        }
+        .empty-tip {
+            text-align: center; padding: 40px; color: #999;
+            background: #fff; border-radius: 8px; margin-top: 15px;
+        }
+    </style>
+</head>
+<body>  <!-- ✅ 修复：原来是 <bodyl> -->
+
+<div class="header">
+    <h1>📚 选课</h1>
+    <div>
+        <a href="/student.html">返回首页</a>
+        <a href="#" onclick="logout()">退出登录</a>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab active" id="tabAll" onclick="switchTab('all')">全部课程</button>
+    <button class="tab" id="tabMy" onclick="switchTab('my')">我选的课</button>
+</div>
+
+<!-- 全部课程面板 -->
+<div id="panelAll">
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>课程名</th>
+            <th>教师</th>
+            <th>学分</th>
+            <th>容量</th>
+            <th>已选</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="courseTable"></tbody>
+    </table>
+</div>
+
+<!-- 我选的课面板 -->
+<div id="panelMy" style="display:none;">
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>课程名</th>
+            <th>教师</th>
+            <th>学分</th>
+            <th>容量</th>
+            <th>已选</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="myCourseTable"></tbody>
+    </table>
+    <div id="myEmptyTip" class="empty-tip" style="display:none;">
+        😶 你还没有选择任何课程，去「全部课程」选几门吧！
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    // ============ ✅ 新增：统一请求封装，防止 JSON 解析错误 ============
+    async function request(url, options = {}) {
+        const res = await fetch(url, {
+            ...options,
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                ...(options.headers || {})
+            }
+        });
+
+        // 401/403：登录失效，跳登录页
+        if (res.status === 401 || res.status === 403) {
+            alert('登录已过期，请重新登录');
+            localStorage.clear();
+            window.location.href = '/login.html';
+            throw new Error('未授权');
+        }
+
+        // 非 200：抛错
+        if (!res.ok) {
+            const text = await res.text();
+            console.error('请求失败:', url, res.status, text);
+            throw new Error('服务器错误 ' + res.status);
+        }
+
+        return res.json();
+    }
+
+    // ============ Tab 切换 ============
+    function switchTab(type) {
+        const tabAll = document.getElementById('tabAll');
+        const tabMy = document.getElementById('tabMy');
+        const panelAll = document.getElementById('panelAll');
+        const panelMy = document.getElementById('panelMy');
+
+        if (type === 'all') {
+            tabAll.classList.add('active');
+            tabMy.classList.remove('active');
+            panelAll.style.display = 'block';
+            panelMy.style.display = 'none';
+            loadCourses();
+        } else {
+            tabMy.classList.add('active');
+            tabAll.classList.remove('active');
+            panelAll.style.display = 'none';
+            panelMy.style.display = 'block';
+            loadMyCourses();
+        }
+    }
+
+    // ============ 全部课程 ============
+    async function loadCourses() {
+        try {
+            const courses = await request('/course/list');
+            const tbody = document.getElementById('courseTable');
+            tbody.innerHTML = '';
+
+            courses.forEach(c => {
+                const actionBtn = c.isSelected
+                    ? `<button class="btn-drop" onclick="dropCourse(${c.id}, 'all')">退课</button>`
+                    : `<button class="btn-select" onclick="selectCourse(${c.id})">选课</button>`;
+
+                const selectedTag = c.isSelected
+                    ? `<span class="tag-selected">已选</span>`
+                    : '';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.courseName}${selectedTag}</td>
+                        <td>${c.teacherName || '-'}</td>
+                        <td>${c.credit}</td>
+                        <td>${c.capacity}</td>
+                        <td>${c.selectedCount}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error('加载课程失败:', e);
+        }
+    }
+
+    // ============ 我选的课 ============
+    async function loadMyCourses() {
+        try {
+            const courses = await request('/course/select/my');
+            const tbody = document.getElementById('myCourseTable');
+            const emptyTip = document.getElementById('myEmptyTip');
+            tbody.innerHTML = '';
+
+            if (courses.length === 0) {
+                emptyTip.style.display = 'block';
+                return;
+            }
+            emptyTip.style.display = 'none';
+
+            courses.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.courseName}</td>
+                        <td>${c.teacherName || '-'}</td>
+                        <td>${c.credit}</td>
+                        <td>${c.capacity}</td>
+                        <td>${c.selectedCount}</td>
+                        <td>
+                            <button class="btn-drop" onclick="dropCourse(${c.id}, 'my')">退课</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error('加载我的课程失败:', e);
+        }
+    }
+
+    // ============ 选课 ============
+    async function selectCourse(courseId) {
+        if (!confirm('确认选择这门课程吗？')) return;
+        try {
+            const data = await request('/course/select/' + courseId, { method: 'POST' });
+            alert(data.message);
+            if (data.success) loadCourses();
+        } catch (e) {
+            alert('选课失败：' + e.message);
+        }
+    }
+
+    // ============ 退课 ============
+    async function dropCourse(courseId, from) {
+        if (!confirm('确认退选这门课程吗？')) return;
+        try {
+            const data = await request('/course/select/drop/' + courseId, { method: 'POST' });
+            alert(data.message);
+            if (data.success) {
+                if (from === 'my') loadMyCourses();
+                else loadCourses();
+            }
+        } catch (e) {
+            alert('退课失败：' + e.message);
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    // 默认加载全部课程
+    loadCourses();
+</script>
+</body>
+</html>
