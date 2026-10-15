@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service   // ✅ 关键：必须加这个注解
+@Service   //关键：必须加这个注解
 public class CourseScheduleServiceImpl implements CourseScheduleService {
 
     @Autowired

@@ -1,4 +1,4 @@
-package com.students.jwsystem_public.service.impl;
+package com.students.jwsystem_public.service;
 
 import com.students.jwsystem_public.entity.Score;
 import com.students.jwsystem_public.entity.User;

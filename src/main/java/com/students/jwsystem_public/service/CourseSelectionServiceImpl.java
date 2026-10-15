@@ -1,4 +1,4 @@
-package com.students.jwsystem_public.service.impl;
+package com.students.jwsystem_public.service;
 
 import com.students.jwsystem_public.entity.Course;
 import com.students.jwsystem_public.entity.CourseSelection;
@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;   // ✅ 新增
-
+import java.util.List;
 @Service
 public class CourseSelectionServiceImpl implements CourseSelectionService {
 
@@ -78,7 +77,7 @@ public class CourseSelectionServiceImpl implements CourseSelectionService {
         courseSelectionMapper.decrementSelectedCount(courseId);
     }
 
-    // ✅ 新增：查询当前学生已选课程列表
+    // 查询当前学生已选课程列表
     @Override
     public List<Course> getMyCourses(String username) {
         User user = userMapper.findByUsername(username);

@@ -1,7 +1,7 @@
 package com.students.jwsystem_public.service;
 
-import com.students.jwsystem_public.entity.Course;   // ✅ 新增
-import java.util.List;                                // ✅ 新增
+import com.students.jwsystem_public.entity.Course;
+import java.util.List;
 
 public interface CourseSelectionService {
     String selectCourse(Long courseId, String username);
@@ -9,6 +9,6 @@ public interface CourseSelectionService {
 
     void dropCourse(Long studentId, Long courseId);
 
-    // ✅ 新增：查询当前学生已选课程列表
+    // ：查询当前学生已选课程列表
     List<Course> getMyCourses(String username);
 }

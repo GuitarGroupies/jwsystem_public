@@ -1,16 +1,16 @@
 package com.students.jwsystem_public.service;
 
 import com.students.jwsystem_public.entity.Course;
-import com.students.jwsystem_public.entity.User;                       // ✅ 新增
+import com.students.jwsystem_public.entity.User;
 import com.students.jwsystem_public.mapper.CourseMapper;
-import com.students.jwsystem_public.mapper.CourseSelectionMapper;      // ✅ 新增
-import com.students.jwsystem_public.mapper.UserMapper;                 // ✅ 新增
+import com.students.jwsystem_public.mapper.CourseSelectionMapper;
+import com.students.jwsystem_public.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;   // ✅ 新增
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;       // ✅ 新增
+import java.util.Set;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -18,11 +18,11 @@ public class CourseServiceImpl implements CourseService {
     @Autowired
     private CourseMapper courseMapper;
 
-    // ✅ 新增：注入 CourseSelectionMapper
+    //：注入 CourseSelectionMapper
     @Autowired
     private CourseSelectionMapper courseSelectionMapper;
 
-    // ✅ 新增：注入 UserMapper
+    //注入 UserMapper
     @Autowired
     private UserMapper userMapper;
 
@@ -36,7 +36,7 @@ public class CourseServiceImpl implements CourseService {
         return courseMapper.getCourseById(id);
     }
 
-    // ✅ 修改：原来直接 return List.of();，现在真正实现
+
     @Override
     public List<Course> getAllCourses(String username) {
         // 1. 先查出所有课程

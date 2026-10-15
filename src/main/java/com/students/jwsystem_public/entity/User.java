@@ -8,6 +8,6 @@ public class User {
     private Long id;
     private String username;
     private String password;
-    private String realName;    // ← 改成驼峰
+    private String realName;
     private String role;
 }

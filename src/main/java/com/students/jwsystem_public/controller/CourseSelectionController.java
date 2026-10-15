@@ -1,8 +1,8 @@
 package com.students.jwsystem_public.controller;
 
 import com.students.jwsystem_public.entity.Course;
-import com.students.jwsystem_public.entity.CourseSchedule;                        // ✅ 新增
-import com.students.jwsystem_public.service.CourseScheduleService;                // ✅ 新增
+import com.students.jwsystem_public.entity.CourseSchedule;
+import com.students.jwsystem_public.service.CourseScheduleService;
 import com.students.jwsystem_public.service.CourseSelectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +20,7 @@ public class CourseSelectionController {
     private CourseSelectionService courseSelectionService;
 
     @Autowired
-    private CourseScheduleService courseScheduleService;   // ✅ 新增
+    private CourseScheduleService courseScheduleService;
 
     /**
      * 选课接口
@@ -67,7 +67,7 @@ public class CourseSelectionController {
         return courseSelectionService.getMyCourses(username);
     }
 
-    // ✅ 新增：获取当前学生的课表
+    // 获取当前学生的课表
     @GetMapping("/schedule")
     public List<CourseSchedule> getSchedule() {
         String username = getCurrentUsername();

@@ -20,9 +20,9 @@ public class CourseController {
     // 查询所有课程
     @GetMapping("/list")
     public List<Course> getAllCourses() {
-        // ✅ 新增：从 SecurityContext 获取当前登录用户名
+        // 从 SecurityContext 获取当前登录用户名
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        // ✅ 修改：把 username 传给 Service（原来是无参调用）
+        // 修改：把 username 传给 Service（原来是无参调用）
         return courseService.getAllCourses(username);
     }
 }

@@ -28,6 +28,6 @@ public interface CourseSelectionMapper {
  // 根据学生ID查询已选课程ID列表
  List<Long> selectCourseIdsByStudentId(@Param("studentId") Long studentId);
 
- // ✅ 新增：查询某学生已选的课程详情列表（用于“我选的课”页面）
+ // 查询某学生已选的课程详情列表（用于“我选的课”页面）
  List<Course> selectMyCourses(@Param("studentId") Long studentId);
 }
