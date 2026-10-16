@@ -54,4 +54,20 @@
         where cs.student_id = #{studentId}
         order by cs.id desc
     </select>
+    <select id="selectStudentsByCourseId" resultType="com.students.jwsystem_public.entity.Course">
+        select
+        cs.id,
+        cs.student_id    as studentId,
+        cs.course_id     as courseId,
+        cs.select_time   as selectTime,
+        u.username       as studentUsername,
+        u.real_name      as studentName,
+        s.score          as score
+        from course_selection cs
+        inner join user  u on cs.student_id = u.id
+        left  join score s on s.student_id = cs.student_id
+        and s.course_id = cs.course_id
+        where cs.course_id = #{courseId}
+        order by u.username
+    </select>
 </mapper>

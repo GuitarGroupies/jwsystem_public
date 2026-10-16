@@ -7,4 +7,5 @@ public interface CourseService {
     public List<Course> getAllCourses();// ← 加 public
     Course getCourseById(Long id);
     List<Course> getAllCourses(String username);
+    List<Course> getTeacherCourses(String username);
 }

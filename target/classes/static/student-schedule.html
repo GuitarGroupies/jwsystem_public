@@ -69,7 +69,6 @@
     </div>
 </div>
 
-<!-- 学分统计 -->
 <div class="summary" id="summary" style="display:none;">
     <div class="summary-item">
         <div class="label">已选课程</div>
@@ -85,7 +84,6 @@
     </div>
 </div>
 
-<!-- 课表 -->
 <div class="schedule-wrapper" id="scheduleWrapper" style="display:none;">
     <table class="schedule">
         <thead>
@@ -110,14 +108,20 @@
 
 <script>
     const token = localStorage.getItem('token');
+    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+
+    // ✅ 角色校验：非学生账号直接踢回登录页
     if (!token) {
+        window.location.href = '/login.html';
+    } else if (role !== 'STUDENT') {
+        alert('无权访问学生端页面');
+        localStorage.clear();
         window.location.href = '/login.html';
     }
 
-    const MAX_SECTION = 6;   // 每天最多显示 6 节
-    const MAX_DAY = 7;       // 周一 ~ 周日
+    const MAX_SECTION = 6;
+    const MAX_DAY = 7;
 
-    // 统一请求封装
     async function request(url, options = {}) {
         const res = await fetch(url, {
             ...options,
@@ -158,7 +162,6 @@
             wrapper.style.display = 'block';
             summary.style.display = 'flex';
 
-            // ===== 统计信息 =====
             const courseSet = new Set();
             let totalCredit = 0;
             let totalSection = 0;
@@ -173,8 +176,6 @@
             document.getElementById('totalCredit').innerHTML = totalCredit + '<small>分</small>';
             document.getElementById('totalSection').innerHTML = totalSection + '<small>节</small>';
 
-            // ===== 建立格子索引 =====
-            // grid[day][section] = schedule 对象（day: 1-7, section: 1-6）
             const grid = {};
             schedules.forEach(s => {
                 for (let sec = s.startSection; sec <= s.endSection; sec++) {
@@ -182,7 +183,6 @@
                 }
             });
 
-            // ===== 渲染表格 =====
             const tbody = document.getElementById('scheduleBody');
             tbody.innerHTML = '';
 
@@ -193,7 +193,6 @@
                     if (!s) {
                         row += '<td class="empty"></td>';
                     } else if (s.startSection === section) {
-                        // 只在起始节次渲染，用 rowspan 合并
                         const rowspan = s.endSection - s.startSection + 1;
                         row += `<td class="course-cell" rowspan="${rowspan}">
                             <div class="course-name">${s.courseName}</div>
@@ -201,7 +200,6 @@
                             <div class="course-info">📍 ${s.location || '-'}</div>
                         </td>`;
                     }
-                    // 否则跳过（被上一格 rowspan 覆盖）
                 }
                 row += '</tr>';
                 tbody.innerHTML += row;

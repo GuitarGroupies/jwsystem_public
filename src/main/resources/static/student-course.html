@@ -63,7 +63,7 @@
         }
     </style>
 </head>
-<body>  <!-- ✅ 修复：原来是 <bodyl> -->
+<body>
 
 <div class="header">
     <h1>📚 选课</h1>
@@ -78,7 +78,6 @@
     <button class="tab" id="tabMy" onclick="switchTab('my')">我选的课</button>
 </div>
 
-<!-- 全部课程面板 -->
 <div id="panelAll">
     <table>
         <thead>
@@ -96,7 +95,6 @@
     </table>
 </div>
 
-<!-- 我选的课面板 -->
 <div id="panelMy" style="display:none;">
     <table>
         <thead>
@@ -119,11 +117,17 @@
 
 <script>
     const token = localStorage.getItem('token');
+    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+
+    // ✅ 角色校验：非学生账号直接踢回登录页
     if (!token) {
+        window.location.href = '/login.html';
+    } else if (role !== 'STUDENT') {
+        alert('无权访问学生端页面');
+        localStorage.clear();
         window.location.href = '/login.html';
     }
 
-    // ============ ✅ 新增：统一请求封装，防止 JSON 解析错误 ============
     async function request(url, options = {}) {
         const res = await fetch(url, {
             ...options,
@@ -133,7 +137,6 @@
             }
         });
 
-        // 401/403：登录失效，跳登录页
         if (res.status === 401 || res.status === 403) {
             alert('登录已过期，请重新登录');
             localStorage.clear();
@@ -141,7 +144,6 @@
             throw new Error('未授权');
         }
 
-        // 非 200：抛错
         if (!res.ok) {
             const text = await res.text();
             console.error('请求失败:', url, res.status, text);
@@ -151,7 +153,6 @@
         return res.json();
     }
 
-    // ============ Tab 切换 ============
     function switchTab(type) {
         const tabAll = document.getElementById('tabAll');
         const tabMy = document.getElementById('tabMy');
@@ -173,7 +174,6 @@
         }
     }
 
-    // ============ 全部课程 ============
     async function loadCourses() {
         try {
             const courses = await request('/course/list');
@@ -206,7 +206,6 @@
         }
     }
 
-    // ============ 我选的课 ============
     async function loadMyCourses() {
         try {
             const courses = await request('/course/select/my');
@@ -240,7 +239,6 @@
         }
     }
 
-    // ============ 选课 ============
     async function selectCourse(courseId) {
         if (!confirm('确认选择这门课程吗？')) return;
         try {
@@ -252,7 +250,6 @@
         }
     }
 
-    // ============ 退课 ============
     async function dropCourse(courseId, from) {
         if (!confirm('确认退选这门课程吗？')) return;
         try {
@@ -272,7 +269,6 @@
         window.location.href = '/login.html';
     }
 
-    // 默认加载全部课程
     loadCourses();
 </script>
 </body>

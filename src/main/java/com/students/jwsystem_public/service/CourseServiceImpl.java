@@ -60,4 +60,13 @@ public class CourseServiceImpl implements CourseService {
         }
         return courses;
     }
+
+    @Override
+    public List<Course> getTeacherCourses(String username) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        return courseMapper.selectByTeacherId(user.getId());
+    }
 }

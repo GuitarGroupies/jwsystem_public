@@ -18,50 +18,18 @@
             padding: 40px;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 480px;
+            width: 420px;
         }
         .login-box h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
             color: #333;
         }
-
-        /* 身份选择卡片 */
-        .role-select {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        .role-card {
-            flex: 1;
-            padding: 20px 10px;
-            border: 2px solid #eee;
-            border-radius: 8px;
+        .login-box .subtitle {
             text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #fafafa;
-        }
-        .role-card:hover {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-        .role-card.active {
-            border-color: #667eea;
-            background: #e6efff;
-        }
-        .role-card .icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .role-card .label {
-            font-size: 14px;
-            color: #555;
-        }
-        .role-card.active .label {
-            color: #667eea;
-            font-weight: bold;
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 30px;
         }
 
         .form-item { margin-bottom: 20px; }
@@ -121,26 +89,11 @@
 
 <div class="login-box">
     <h2>教务系统登录</h2>
-
-    <!-- 身份选择 -->
-    <div class="role-select">
-        <div class="role-card active" data-role="STUDENT" onclick="selectRole(this)">
-            <span class="icon">🎓</span>
-            <span class="label">学生端</span>
-        </div>
-        <div class="role-card" data-role="TEACHER" onclick="selectRole(this)">
-            <span class="icon">👨‍🏫</span>
-            <span class="label">教师端</span>
-        </div>
-        <div class="role-card" data-role="ADMIN" onclick="selectRole(this)">
-            <span class="icon">🛠️</span>
-            <span class="label">管理员端</span>
-        </div>
-    </div>
+    <div class="subtitle">请输入账号密码，系统自动识别身份</div>
 
     <div class="form-item">
-        <label id="usernameLabel">学号</label>
-        <input type="text" id="username" placeholder="请输入学号">
+        <label>账号</label>
+        <input type="text" id="username" placeholder="学号 / 工号 / 管理员账号">
     </div>
 
     <div class="form-item">
@@ -156,7 +109,7 @@
         </div>
     </div>
 
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">学生登录</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
 
     <div class="message" id="message"></div>
 </div>
@@ -164,32 +117,6 @@
 <script>
     const API = 'http://localhost:8080';
     let currentKey = '';
-    let selectedRole = 'STUDENT';
-
-    // 身份选择
-    function selectRole(el) {
-        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        selectedRole = el.dataset.role;
-
-        const btn = document.getElementById('loginBtn');
-        const label = document.getElementById('usernameLabel');
-        const usernameInput = document.getElementById('username');
-
-        if (selectedRole === 'STUDENT') {
-            btn.innerText = '学生登录';
-            label.innerText = '学号';
-            usernameInput.placeholder = '请输入学号';
-        } else if (selectedRole === 'TEACHER') {
-            btn.innerText = '教师登录';
-            label.innerText = '工号';
-            usernameInput.placeholder = '请输入工号';
-        } else if (selectedRole === 'ADMIN') {
-            btn.innerText = '管理员登录';
-            label.innerText = '管理员账号';
-            usernameInput.placeholder = '请输入管理员账号';
-        }
-    }
 
     // 加载验证码
     async function loadCaptcha() {
@@ -207,9 +134,9 @@
 
     // 登录
     async function doLogin() {
-        const username = document.getElementById('username').value;
+        const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
-        const captcha = document.getElementById('captcha').value;
+        const captcha = document.getElementById('captcha').value.trim();
         const msg = document.getElementById('message');
 
         if (!username || !password || !captcha) {
@@ -234,15 +161,19 @@
                 msg.className = 'message success';
                 msg.innerText = '登录成功，正在跳转...';
 
+                // ✅ 去掉 ROLE_ 前缀，统一处理
+                const role = (data.role || '').replace('ROLE_', '');
+
                 setTimeout(() => {
-                    if (data.role === 'ROLE_STUDENT') {
+                    if (role === 'STUDENT') {
                         window.location.href = '/student.html';
-                    } else if (data.role === 'ROLE_TEACHER') {
+                    } else if (role === 'TEACHER') {
                         window.location.href = '/teacher.html';
-                    } else if (data.role === 'ROLE_ADMIN') {
+                    } else if (role === 'ADMIN') {
                         window.location.href = '/admin.html';
                     } else {
                         alert('未知角色：' + data.role);
+                        localStorage.clear();
                     }
                 }, 500);
 

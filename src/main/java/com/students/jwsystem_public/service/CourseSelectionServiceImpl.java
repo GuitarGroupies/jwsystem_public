@@ -1,5 +1,5 @@
 package com.students.jwsystem_public.service;
-
+import java.util.List;
 import com.students.jwsystem_public.entity.Course;
 import com.students.jwsystem_public.entity.CourseSelection;
 import com.students.jwsystem_public.entity.User;
@@ -86,4 +86,11 @@ public class CourseSelectionServiceImpl implements CourseSelectionService {
         }
         return courseSelectionMapper.selectMyCourses(user.getId());
     }
+
+    @Override
+    public List<CourseSelection> getStudentsByCourseId(Long courseId) {
+        return courseSelectionMapper.selectStudentsByCourseId(courseId);
+    }
+
+
 }

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的课程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
+        .header {
+            background: #52c41a; color: #fff; padding: 20px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 20px; }
+        .header a { color: #fff; text-decoration: none; margin-right: 15px; }
+
+        .summary {
+            margin-top: 20px; background: #fff; border-radius: 8px;
+            padding: 20px; display: flex; gap: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .summary-item { flex: 1; }
+        .summary-item .label { color: #999; font-size: 13px; margin-bottom: 8px; }
+        .summary-item .value { color: #52c41a; font-size: 24px; font-weight: 600; }
+        .summary-item .value small { font-size: 14px; color: #999; margin-left: 4px; }
+
+        .course-list {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+        }
+        .course-card {
+            background: #fff; border-radius: 8px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #52c41a;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .course-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .course-card .course-name {
+            font-size: 18px; font-weight: 600; color: #333; margin-bottom: 12px;
+        }
+        .course-card .info-row {
+            display: flex; justify-content: space-between;
+            font-size: 13px; color: #666; margin-bottom: 8px;
+        }
+        .course-card .info-row .val { color: #333; font-weight: 500; }
+
+        .progress-bar {
+            height: 8px; background: #f0f0f0; border-radius: 4px;
+            overflow: hidden; margin: 12px 0 15px;
+        }
+        .progress-inner {
+            height: 100%; background: linear-gradient(90deg, #52c41a, #95de64);
+            border-radius: 4px; transition: width 0.3s;
+        }
+
+        /* ✅ 修改：兼容 <a> 标签的按钮样式 */
+        .actions {
+            display: flex; gap: 10px; margin-top: 15px;
+        }
+        .actions .action-btn {
+            flex: 1; padding: 8px; border: none; border-radius: 4px;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+            text-align: center; text-decoration: none; display: inline-block;
+            box-sizing: border-box;
+        }
+        .btn-view { background: #e6f7ff; color: #1890ff; }
+        .btn-view:hover { background: #bae7ff; }
+        .btn-grade { background: #52c41a; color: #fff; }
+        .btn-grade:hover { background: #389e0d; }
+
+        .empty-tip {
+            text-align: center; padding: 60px; color: #999;
+            background: #fff; border-radius: 8px; margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📚 我的课程</h1>
+    <div>
+        <a href="/teacher.html">返回首页</a>
+        <a href="#" onclick="logout()">退出登录</a>
+    </div>
+</div>
+
+<div class="summary" id="summary" style="display:none;">
+    <div class="summary-item">
+        <div class="label">授课门数</div>
+        <div class="value" id="courseCount">0<small>门</small></div>
+    </div>
+    <div class="summary-item">
+        <div class="label">总学分</div>
+        <div class="value" id="totalCredit">0<small>分</small></div>
+    </div>
+    <div class="summary-item">
+        <div class="label">总学生人数</div>
+        <div class="value" id="totalStudents">0<small>人</small></div>
+    </div>
+</div>
+
+<div class="course-list" id="courseList"></div>
+
+<div class="empty-tip" id="emptyTip" style="display:none;">
+    😶 你目前没有授课任务
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+
+    // ✅ 角色校验
+    if (!token) {
+        window.location.href = '/login.html';
+    } else if (role !== 'TEACHER') {
+        alert('无权访问教师端页面');
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    async function request(url, options = {}) {
+        const res = await fetch(url, {
+            ...options,
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                ...(options.headers || {})
+            }
+        });
+        if (res.status === 401 || res.status === 403) {
+            alert('登录已过期，请重新登录');
+            localStorage.clear();
+            window.location.href = '/login.html';
+            throw new Error('未授权');
+        }
+        if (!res.ok) {
+            const text = await res.text();
+            console.error('请求失败:', url, res.status, text);
+            throw new Error('服务器错误 ' + res.status);
+        }
+        return res.json();
+    }
+
+    async function loadCourses() {
+        try {
+            const courses = await request('/teacher/courses');
+            const list = document.getElementById('courseList');
+            const emptyTip = document.getElementById('emptyTip');
+            const summary = document.getElementById('summary');
+
+            if (!courses || courses.length === 0) {
+                emptyTip.style.display = 'block';
+                summary.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+
+            emptyTip.style.display = 'none';
+            summary.style.display = 'flex';
+
+            // ===== 统计 =====
+            let totalCredit = 0;
+            let totalStudents = 0;
+            courses.forEach(c => {
+                totalCredit += (c.credit || 0);
+                totalStudents += (c.selectedCount || 0);
+            });
+            document.getElementById('courseCount').innerHTML = courses.length + '<small>门</small>';
+            document.getElementById('totalCredit').innerHTML = totalCredit + '<small>分</small>';
+            document.getElementById('totalStudents').innerHTML = totalStudents + '<small>人</small>';
+
+            // ===== 渲染课程卡片 =====
+            list.innerHTML = '';
+            courses.forEach(c => {
+                const selected = c.selectedCount || 0;
+                const capacity = c.capacity || 1;
+                const percent = Math.min(100, Math.round(selected / capacity * 100));
+                const isFull = selected >= capacity;
+
+                // ✅ 用 <a> 标签直接跳转，不依赖 JS 函数
+                const studentsUrl = '/teacher-students.html?courseId=' + c.id +
+                    '&courseName=' + encodeURIComponent(c.courseName);
+                const gradeUrl = '/teacher-grade.html?courseId=' + c.id +
+                    '&courseName=' + encodeURIComponent(c.courseName);
+
+                list.innerHTML += `
+                    <div class="course-card">
+                        <div class="course-name">
+                            ${c.courseName}
+                            ${isFull ? '<span style="font-size:12px;color:#ff4d4f;">（已满）</span>' : ''}
+                        </div>
+                        <div class="info-row">
+                            <span>课程 ID</span>
+                            <span class="val">#${c.id}</span>
+                        </div>
+                        <div class="info-row">
+                            <span>学分</span>
+                            <span class="val">${c.credit} 分</span>
+                        </div>
+                        <div class="info-row">
+                            <span>选课人数</span>
+                            <span class="val">${selected} / ${capacity} 人</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-inner" style="width: ${percent}%;
+                                ${isFull ? 'background:#ff7875;' : ''}"></div>
+                        </div>
+                        <div class="actions">
+                            <a class="action-btn btn-view" href="${studentsUrl}">
+                                👥 查看学生
+                            </a>
+                            <a class="action-btn btn-grade" href="${gradeUrl}">
+                                ✏️ 录入成绩
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+
+        } catch (e) {
+            console.error('加载课程失败:', e);
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    loadCourses();
+</script>
+</body>
+</html>

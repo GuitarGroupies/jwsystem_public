@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.students.jwsystem_public.mapper.CourseMapper">
+
     <select id="getCourseList" resultType="com.students.jwsystem_public.entity.Course">
         select c.id,
         c.course_name   as courseName,
@@ -8,11 +9,11 @@
         c.credit,
         c.capacity,
         c.selected_count as selectedCount,
-        u.real_name
-        as teacherName
+        u.real_name     as teacherName
         from course c
         left join `user` u on c.teacher_id = u.id
     </select>
+
     <select id="getAllCourses" resultType="com.students.jwsystem_public.entity.Course">
         select c.id,
         c.course_name    as courseName,
@@ -24,13 +25,28 @@
         from course c
         left join `user` u on c.teacher_id = u.id
     </select>
+
     <select id="getCourseById" resultType="com.students.jwsystem_public.entity.Course">
-        select id, course_name as courseName,teacher_id as teacherId,
+        select id, course_name as courseName, teacher_id as teacherId,
         credit,
         capacity,
         selected_count as selectedCount
         from course
         where id = #{id}
+    </select>
+
+    <!-- ✅ 新增：按教师ID查询该教师教的课程 -->
+    <select id="selectByTeacherId" resultType="com.students.jwsystem_public.entity.Course">
+        select
+        id,
+        course_name    as courseName,
+        teacher_id     as teacherId,
+        credit,
+        capacity,
+        selected_count as selectedCount
+        from course
+        where teacher_id = #{teacherId}
+        order by id
     </select>
 
 </mapper>

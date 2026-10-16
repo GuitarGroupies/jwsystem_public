@@ -10,4 +10,6 @@ import java.util.List;
 public interface CourseMapper {
     List<Course> getAllCourses();
     Course getCourseById(@Param("id") Long id);
+
+    List<Course> selectByTeacherId(@Param("teacherId") Long teacherId);
 }

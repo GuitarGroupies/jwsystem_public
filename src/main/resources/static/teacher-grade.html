@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>录入成绩</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
+        .header {
+            background: #52c41a; color: #fff; padding: 20px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 20px; }
+        .header a { color: #fff; text-decoration: none; margin-right: 15px; }
+
+        .card {
+            margin-top: 20px; background: #fff; border-radius: 8px;
+            padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .course-title {
+            font-size: 20px; font-weight: 600; color: #333; margin-bottom: 20px;
+            padding-bottom: 15px; border-bottom: 2px solid #52c41a;
+        }
+        .course-title small {
+            font-size: 13px; color: #999; font-weight: normal; margin-left: 10px;
+        }
+        .placeholder {
+            text-align: center; padding: 60px 20px; color: #999;
+        }
+        .placeholder .icon { font-size: 60px; margin-bottom: 20px; }
+        .placeholder .text { font-size: 16px; margin-bottom: 10px; }
+        .placeholder .hint { font-size: 13px; color: #bbb; }
+
+        .placeholder .back-btn {
+            display: inline-block; margin-top: 20px;
+            padding: 10px 24px; background: #52c41a; color: #fff;
+            border-radius: 6px; text-decoration: none; font-size: 14px;
+        }
+        .placeholder .back-btn:hover { background: #389e0d; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>✏️ 录入成绩</h1>
+    <div>
+        <a href="/teacher-course.html">返回课程列表</a>
+        <a href="/teacher.html">返回首页</a>
+        <a href="#" onclick="logout()">退出登录</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="course-title" id="courseTitle">
+        加载中...
+        <small id="courseIdTag"></small>
+    </div>
+    <div class="placeholder">
+        <div class="icon">🚧</div>
+        <div class="text">成绩录入功能开发中...</div>
+        <div class="hint">下一步将展示选了这门课的学生列表，并允许逐个录入分数</div>
+        <a href="/teacher-course.html" class="back-btn">← 返回课程列表</a>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+
+    // 角色校验
+    if (!token) {
+        window.location.href = '/login.html';
+    } else if (role !== 'TEACHER') {
+        alert('无权访问教师端页面');
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    // 从 URL 里取出 courseId 和 courseName
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get('courseId');
+    const courseName = params.get('courseName');
+
+    if (!courseId) {
+        alert('缺少课程参数，返回课程列表');
+        window.location.href = '/teacher-course.html';
+    }
+
+    document.getElementById('courseTitle').innerHTML =
+        '📖 ' + (courseName || '未知课程') +
+        '<small id="courseIdTag">课程 ID: ' + courseId + '</small>';
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+</script>
+</body>
+</html>

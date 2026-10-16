@@ -39,15 +39,23 @@
 </div>
 
 <div class="menu">
-    <a href="#">📖 我的课程</a>
-    <a href="#">👥 学生名单</a>
-    <a href="#">✏️ 录入成绩</a>
+    <!-- ✅ 修改：真实链接跳转 -->
+    <a href="/teacher-course.html">📖 我的课程</a>
+    <a href="/teacher-course.html">👥 学生名单</a>
+    <a href="/teacher-course.html">✏️ 录入成绩</a>
     <a href="#">👤 个人信息</a>
 </div>
 
 <script>
     const token = localStorage.getItem('token');
+    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+
+    // ✅ 角色校验
     if (!token) {
+        window.location.href = '/login.html';
+    } else if (role !== 'TEACHER') {
+        alert('无权访问教师端页面');
+        localStorage.clear();
         window.location.href = '/login.html';
     }
 
@@ -57,7 +65,7 @@
         .then(res => res.json())
         .then(data => {
             document.getElementById('userInfo').innerText =
-                '欢迎，' + data.realName + '（' + data.username + '） | 角色：' + data.role;
+                '欢迎，' + data.realName + '（' + data.username + '） | 角色：教师';
         })
         .catch(() => {
             alert('登录已过期，请重新登录');
