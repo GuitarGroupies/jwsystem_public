@@ -2,207 +2,100 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>个人信息</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
-        .header {
-            background: #1890ff; color: #fff; padding: 20px;
-            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { font-size: 20px; }
-        .header a { color: #fff; text-decoration: none; margin-right: 15px; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
 
         .profile-card {
-            margin-top: 20px; background: #fff; border-radius: 8px;
-            padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            display: flex; align-items: center; gap: 30px;
+            background: #fff; border-radius: 12px; padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 30px; margin-bottom: 24px;
         }
         .avatar {
             width: 100px; height: 100px; border-radius: 50%;
-            background: linear-gradient(135deg, #1890ff, #40a9ff);
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: 40px; font-weight: 600; flex-shrink: 0;
         }
         .profile-main { flex: 1; }
-        .profile-main .name {
-            font-size: 24px; font-weight: 600; color: #333; margin-bottom: 8px;
-        }
-        .profile-main .username {
-            color: #666; font-size: 14px; margin-bottom: 12px;
-        }
-        .role-tag {
-            display: inline-block; padding: 4px 12px; border-radius: 4px;
-            font-size: 12px; font-weight: 500;
-            background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;
-        }
+        .profile-main .name { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .profile-main .username { color: #6b7280; font-size: 15px; margin-bottom: 12px; }
+        .role-tag { background: #eff6ff; color: #3b82f6; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #bfdbfe; }
 
-        .info-section {
-            margin-top: 20px; background: #fff; border-radius: 8px;
-            padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .section-title {
-            font-size: 16px; font-weight: 600; color: #333;
-            padding-bottom: 15px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px;
-        }
-        .info-list { display: flex; flex-wrap: wrap; gap: 20px; }
-        .info-item {
-            flex: 1; min-width: 200px;
-            padding: 15px; background: #fafafa; border-radius: 6px;
-        }
-        .info-item .label { color: #999; font-size: 13px; margin-bottom: 6px; }
-        .info-item .value { color: #333; font-size: 16px; font-weight: 500; }
+        .info-section { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+        .section-title { font-size: 16px; font-weight: 600; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; }
+        .info-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .info-item { padding: 20px; background: #f9fafb; border-radius: 10px; }
+        .info-item .label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+        .info-item .value { color: #1f2937; font-size: 18px; font-weight: 600; }
 
-        .stats {
-            margin-top: 20px; display: flex; gap: 15px;
-        }
-        .stat-card {
-            flex: 1; background: #fff; border-radius: 8px;
-            padding: 20px; text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .stat-card .num {
-            font-size: 28px; font-weight: 600; color: #1890ff; margin-bottom: 6px;
-        }
-        .stat-card .num small { font-size: 14px; color: #999; margin-left: 4px; }
-        .stat-card .label { color: #666; font-size: 13px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .stat-card .num { font-size: 32px; font-weight: 700; color: #3b82f6; margin-bottom: 8px; }
+        .stat-card .num small { font-size: 15px; color: #6b7280; margin-left: 4px; }
+        .stat-card .label { color: #6b7280; font-size: 14px; }
     </style>
 </head>
 <body>
-
-<div class="header">
-    <h1>👤 个人信息</h1>
-    <div>
-        <a href="/student.html">返回首页</a>
-        <a href="#" onclick="logout()">退出登录</a>
-    </div>
-</div>
 
 <div class="profile-card" id="profileCard" style="display:none;">
     <div class="avatar" id="avatar">?</div>
     <div class="profile-main">
         <div class="name" id="realName">-</div>
         <div class="username" id="username">-</div>
-        <span class="role-tag" id="roleTag">-</span>
+        <span class="role-tag">学生</span>
     </div>
 </div>
 
 <div class="info-section" id="infoSection" style="display:none;">
     <div class="section-title">📋 账号信息</div>
     <div class="info-list">
-        <div class="info-item">
-            <div class="label">用户名 / 学号</div>
-            <div class="value" id="infoUsername">-</div>
-        </div>
-        <div class="info-item">
-            <div class="label">真实姓名</div>
-            <div class="value" id="infoRealName">-</div>
-        </div>
-        <div class="info-item">
-            <div class="label">角色</div>
-            <div class="value" id="infoRole">-</div>
-        </div>
+        <div class="info-item"><div class="label">用户名 / 学号</div><div class="value" id="infoUsername">-</div></div>
+        <div class="info-item"><div class="label">真实姓名</div><div class="value" id="infoRealName">-</div></div>
+        <div class="info-item"><div class="label">所在班级</div><div class="value" id="infoClass">-</div></div>
+        <div class="info-item"><div class="label">角色</div><div class="value">学生</div></div>
     </div>
 </div>
 
 <div class="stats" id="stats" style="display:none;">
-    <div class="stat-card">
-        <div class="num" id="courseCount">0<small>门</small></div>
-        <div class="label">已选课程</div>
-    </div>
-    <div class="stat-card">
-        <div class="num" id="totalCredit">0<small>分</small></div>
-        <div class="label">已获学分</div>
-    </div>
-    <div class="stat-card">
-        <div class="num" id="passedCount">0<small>门</small></div>
-        <div class="label">及格课程</div>
-    </div>
-    <div class="stat-card">
-        <div class="num" id="avgScore">0<small>分</small></div>
-        <div class="label">平均分</div>
-    </div>
+    <div class="stat-card"><div class="num" id="courseCount">0<small>门</small></div><div class="label">已选课程</div></div>
+    <div class="stat-card"><div class="num" id="totalCredit">0<small>分</small></div><div class="label">已获学分</div></div>
+    <div class="stat-card"><div class="num" id="passedCount">0<small>门</small></div><div class="label">及格课程</div></div>
+    <div class="stat-card"><div class="num" id="avgScore">0<small>分</small></div><div class="label">平均分</div></div>
 </div>
 
 <script>
     const token = localStorage.getItem('token');
-    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
+    if (!token) { window.top.location.href = '/login.html'; }
 
-    // ✅ 角色校验：非学生账号直接踢回登录页
-    if (!token) {
-        window.location.href = '/login.html';
-    } else if (role !== 'STUDENT') {
-        alert('无权访问学生端页面');
-        localStorage.clear();
-        window.location.href = '/login.html';
-    }
-
-    const ROLE_MAP = {
-        'STUDENT': '学生',
-        'TEACHER': '教师',
-        'ADMIN': '管理员'
-    };
-
-    async function request(url, options = {}) {
-        const res = await fetch(url, {
-            ...options,
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                ...(options.headers || {})
-            }
-        });
+    async function request(url) {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
         if (res.status === 401 || res.status === 403) {
-            alert('登录已过期，请重新登录');
-            localStorage.clear();
-            window.location.href = '/login.html';
-            throw new Error('未授权');
+            localStorage.clear(); window.top.location.href = '/login.html'; throw new Error('未授权');
         }
-        if (!res.ok) {
-            const text = await res.text();
-            console.error('请求失败:', url, res.status, text);
-            throw new Error('服务器错误 ' + res.status);
-        }
+        if (!res.ok) throw new Error('服务器错误');
         return res.json();
     }
 
     async function loadProfile() {
         try {
             const data = await request('/user/profile');
-
-            document.getElementById('avatar').innerText =
-                (data.realName || data.username).charAt(0);
-
+            document.getElementById('avatar').innerText = (data.realName || data.username).charAt(0);
             document.getElementById('realName').innerText = data.realName || '-';
-            document.getElementById('username').innerText = '学号 / 用户名：' + data.username;
-            document.getElementById('roleTag').innerText = ROLE_MAP[data.role] || data.role;
-            document.getElementById('profileCard').style.display = 'flex';
-
+            document.getElementById('username').innerText = '学号：' + data.username;
             document.getElementById('infoUsername').innerText = data.username || '-';
             document.getElementById('infoRealName').innerText = data.realName || '-';
-            document.getElementById('infoRole').innerText = ROLE_MAP[data.role] || data.role;
+            document.getElementById('infoClass').innerText = data.className || '未分配';
+            document.getElementById('courseCount').innerHTML = (data.courseCount || 0) + '<small>门</small>';
+            document.getElementById('totalCredit').innerHTML = (data.totalCredit || 0) + '<small>分</small>';
+            document.getElementById('passedCount').innerHTML = (data.passedCount || 0) + '<small>门</small>';
+            document.getElementById('avgScore').innerHTML = (data.avgScore || 0) + '<small>分</small>';
+
+            document.getElementById('profileCard').style.display = 'flex';
             document.getElementById('infoSection').style.display = 'block';
-
-            document.getElementById('courseCount').innerHTML =
-                (data.courseCount || 0) + '<small>门</small>';
-            document.getElementById('totalCredit').innerHTML =
-                (data.totalCredit || 0) + '<small>分</small>';
-            document.getElementById('passedCount').innerHTML =
-                (data.passedCount || 0) + '<small>门</small>';
-            document.getElementById('avgScore').innerHTML =
-                (data.avgScore || 0) + '<small>分</small>';
-            document.getElementById('stats').style.display = 'flex';
-
-        } catch (e) {
-            console.error('加载个人信息失败:', e);
-            alert('加载失败：' + e.message);
-        }
+            document.getElementById('stats').style.display = 'grid';
+        } catch (e) { console.error(e); }
     }
-
-    function logout() {
-        localStorage.clear();
-        window.location.href = '/login.html';
-    }
-
     loadProfile();
 </script>
 </body>

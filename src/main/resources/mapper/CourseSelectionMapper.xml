@@ -24,6 +24,9 @@
         where student_id = #{studentId}
         and course_id = #{courseId}
     </delete>
+    <delete id="deleteByStudentId">
+        delete from course_selection where student_id = #{studentId}
+    </delete>
 
     <select id="countByStudentAndCourse" resultType="java.lang.Integer">
         select count(*)
@@ -38,7 +41,7 @@
         where student_id = #{studentId}
     </select>
 
-    <!-- ✅ 新增：查询某学生已选课程的详细信息（连表查 course + user） -->
+    <!-- 查询某学生已选课程的详细信息 -->
     <select id="selectMyCourses" resultType="com.students.jwsystem_public.entity.Course">
         select
         c.id,
@@ -50,11 +53,13 @@
         u.real_name       as teacherName
         from course_selection cs
         inner join course c on cs.course_id = c.id
-        left  join user   u on c.teacher_id = u.id
+        left  join `user` u on c.teacher_id = u.id
         where cs.student_id = #{studentId}
         order by cs.id desc
     </select>
-    <select id="selectStudentsByCourseId" resultType="com.students.jwsystem_public.entity.Course">
+
+    <!-- 教师端：查看某门课的学生名单（含成绩） -->
+    <select id="selectStudentsByCourseId" resultType="com.students.jwsystem_public.entity.CourseSelection">
         select
         cs.id,
         cs.student_id    as studentId,
@@ -62,12 +67,27 @@
         cs.select_time   as selectTime,
         u.username       as studentUsername,
         u.real_name      as studentName,
+        u.class_name     as className,     <!-- ✅ 新增：查询班级 -->
         s.score          as score
         from course_selection cs
-        inner join user  u on cs.student_id = u.id
+        inner join `user` u on cs.student_id = u.id
         left  join score s on s.student_id = cs.student_id
         and s.course_id = cs.course_id
         where cs.course_id = #{courseId}
+        order by u.username
+    </select>
+
+    <!-- 教师端：查看所有教过的学生名单 -->
+    <select id="selectAllStudentsByTeacherId" resultType="com.students.jwsystem_public.entity.CourseSelection">
+        select distinct
+        u.id             as studentId,
+        u.username       as studentUsername,
+        u.real_name      as studentName,
+        u.class_name     as className      <!-- ✅ 新增：查询班级 -->
+        from course_selection cs
+        inner join course c on cs.course_id = c.id
+        inner join `user` u on cs.student_id = u.id
+        where c.teacher_id = #{teacherId}
         order by u.username
     </select>
 </mapper>

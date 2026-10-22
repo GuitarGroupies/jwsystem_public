@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface ScoreService {
     List<Score> getMyScores(String username);
+    boolean saveOrUpdateScore(Long studentId,Long courseId,Double scoreValue);
 }

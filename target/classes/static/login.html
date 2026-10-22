@@ -4,121 +4,148 @@
     <meta charset="UTF-8">
     <title>教务系统 - 登录</title>
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Microsoft YaHei", -apple-system, sans-serif;
+            background: var(--bg);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        .login-box {
-            background: #fff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 420px;
-        }
-        .login-box h2 {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        .login-box .subtitle {
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-            margin-bottom: 30px;
-        }
 
-        .form-item { margin-bottom: 20px; }
-        .form-item label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-        .form-item input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            outline: none;
-        }
-        .form-item input:focus { border-color: #667eea; }
-
-        .captcha-row {
+        .login-container {
             display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .captcha-row input { flex: 1; }
-        .captcha-row img {
-            width: 120px;
-            height: 44px;
-            cursor: pointer;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            width: 900px; height: 550px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
-        button.login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
+        /* 左侧装饰区 */
+        .login-left {
+            flex: 1;
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            color: #fff; padding: 40px;
+            position: relative; overflow: hidden;
         }
-        button.login-btn:hover { background: #5568d3; }
+        .login-left::before {
+            content: ''; position: absolute; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            top: -50%; left: -50%;
+        }
+        .login-left h1 { font-size: 36px; font-weight: 700; margin-bottom: 20px; z-index: 1; letter-spacing: 2px; }
+        .login-left p { font-size: 16px; opacity: 0.8; z-index: 1; text-align: center; line-height: 1.6; }
+        .login-left .icon { font-size: 80px; margin-bottom: 20px; z-index: 1; }
 
-        .message {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 14px;
-            min-height: 20px;
+        /* 右侧表单区 */
+        .login-right {
+            flex: 1; padding: 50px 50px;
+            display: flex; flex-direction: column; justify-content: center;
         }
-        .message.error { color: #ff4d4f; }
-        .message.success { color: #52c41a; }
+        .login-right h2 { font-size: 24px; color: var(--text-main); margin-bottom: 30px; font-weight: 600; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; color: var(--text-sub); margin-bottom: 8px; }
+
+        .input-wrapper {
+            display: flex; align-items: center;
+            background: #f1f5f9; border-radius: 10px;
+            padding: 0 15px; border: 1px solid transparent; transition: all 0.3s;
+            height: 48px; /* ✅ 统一固定高度，防止错位 */
+        }
+        .input-wrapper:focus-within { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .input-wrapper span { color: #94a3b8; font-size: 18px; margin-right: 10px; }
+        .input-wrapper input { flex: 1; border: none; background: transparent; height: 100%; outline: none; font-size: 15px; color: var(--text-main); }
+
+        /* ✅ 修复：验证码布局 */
+        .captcha-row { display: flex; gap: 12px; align-items: center; }
+        .captcha-row .input-wrapper { flex: 1; }
+        .captcha-img {
+            height: 48px;
+            width: 130px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            object-fit: fill; /* 防止裁剪 */
+            transition: border-color 0.3s;
+        }
+        .captcha-img:hover { border-color: var(--primary); }
+
+        .btn-login {
+            width: 100%; height: 48px;
+            background: var(--primary); color: #fff;
+            border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            margin-top: 20px; transition: all 0.3s;
+        }
+        .btn-login:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+
+        .message { margin-top: 15px; text-align: center; font-size: 14px; min-height: 20px; }
+        .message.error { color: #ef4444; }
+        .message.success { color: #10b981; }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <h2>教务系统登录</h2>
-    <div class="subtitle">请输入账号密码，系统自动识别身份</div>
-
-    <div class="form-item">
-        <label>账号</label>
-        <input type="text" id="username" placeholder="学号 / 工号 / 管理员账号">
+<div class="login-container">
+    <div class="login-left">
+        <div class="icon">🎓</div>
+        <h1>智慧教务系统</h1>
+        <p>连接学生与知识的桥梁<br>让教学管理更高效、更智能</p>
     </div>
 
-    <div class="form-item">
-        <label>密码</label>
-        <input type="password" id="password" placeholder="请输入密码">
-    </div>
+    <div class="login-right">
+        <h2>欢迎回来 👋</h2>
 
-    <div class="form-item">
-        <label>验证码</label>
-        <div class="captcha-row">
-            <input type="text" id="captcha" placeholder="请输入验证码">
-            <img id="captchaImg" src="" alt="验证码" title="点击刷新">
+        <div class="form-group">
+            <label>账号 / 学号 / 工号</label>
+            <div class="input-wrapper">
+                <span>👤</span>
+                <input type="text" id="username" placeholder="请输入您的账号">
+            </div>
         </div>
+
+        <div class="form-group">
+            <label>密码</label>
+            <div class="input-wrapper">
+                <span>🔒</span>
+                <input type="password" id="password" placeholder="请输入密码">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>验证码</label>
+            <div class="captcha-row">
+                <div class="input-wrapper">
+                    <span>🛡️</span>
+                    <input type="text" id="captcha" placeholder="输入验证码">
+                </div>
+                <!-- ✅ 确保有点击刷新事件 -->
+                <img id="captchaImg" class="captcha-img" src="" alt="验证码" title="点击刷新">
+            </div>
+        </div>
+
+        <button class="btn-login" onclick="doLogin()">立即登录</button>
+        <div class="message" id="message"></div>
     </div>
-
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
-
-    <div class="message" id="message"></div>
 </div>
 
 <script>
     const API = 'http://localhost:8080';
     let currentKey = '';
 
-    // 加载验证码
     async function loadCaptcha() {
         try {
             const res = await fetch(`${API}/captcha`);
@@ -132,7 +159,6 @@
 
     document.getElementById('captchaImg').onclick = loadCaptcha;
 
-    // 登录
     async function doLogin() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -161,20 +187,13 @@
                 msg.className = 'message success';
                 msg.innerText = '登录成功，正在跳转...';
 
-                // ✅ 去掉 ROLE_ 前缀，统一处理
                 const role = (data.role || '').replace('ROLE_', '');
 
                 setTimeout(() => {
-                    if (role === 'STUDENT') {
-                        window.location.href = '/student.html';
-                    } else if (role === 'TEACHER') {
-                        window.location.href = '/teacher.html';
-                    } else if (role === 'ADMIN') {
-                        window.location.href = '/admin.html';
-                    } else {
-                        alert('未知角色：' + data.role);
-                        localStorage.clear();
-                    }
+                    if (role === 'STUDENT') window.location.href = '/student.html';
+                    else if (role === 'TEACHER') window.location.href = '/teacher.html';
+                    else if (role === 'ADMIN') window.location.href = '/admin.html';
+                    else alert('未知角色：' + data.role);
                 }, 500);
 
             } else {
@@ -195,6 +214,5 @@
 
     loadCaptcha();
 </script>
-
 </body>
 </html>

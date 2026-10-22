@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 30px; }
+        .welcome-card {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff; border-radius: 16px; padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+            margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .welcome-text h1 { font-size: 28px; margin-bottom: 10px; }
+        .welcome-text p { font-size: 16px; opacity: 0.9; }
+        .welcome-icon { font-size: 80px; opacity: 0.8; }
+        .stats-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px;
+        }
+        .stat-card .label { color: #6b7280; font-size: 14px; font-weight: 500; }
+        .stat-card .num { font-size: 28px; font-weight: 700; color: #3b82f6; }
+        .stat-card .num small { font-size: 14px; color: #6b7280; font-weight: 400; margin-left: 4px; }
+    </style>
+</head>
+<body>
+<div class="welcome-card">
+    <div class="welcome-text">
+        <h1 id="welcomeTitle">欢迎回来！</h1>
+        <p>这里是你的专属学习空间，开始今天的学习吧。</p>
+    </div>
+    <div class="welcome-icon">📖</div>
+</div>
+
+<div class="stats-mini-grid">
+    <div class="stat-card">
+        <div class="label">已选课程</div>
+        <div class="num" id="courseCount">0<small>门</small></div>
+    </div>
+    <div class="stat-card">
+        <div class="label">当前平均分</div>
+        <div class="num" id="avgScore">0<small>分</small></div>
+    </div>
+    <div class="stat-card">
+        <div class="label">已获学分</div>
+        <div class="num" id="totalCredit">0<small>分</small></div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if(!token) { window.location.href = '/login.html'; }
+
+    fetch('/user/info', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('welcomeTitle').innerText = `欢迎回来，${data.realName}！`;
+        });
+
+    fetch('/user/profile', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(res => res.json())
+        .then(data => {
+            if(data.courseCount !== undefined) document.getElementById('courseCount').innerHTML = data.courseCount + '<small>门</small>';
+            if(data.avgScore !== undefined) document.getElementById('avgScore').innerHTML = data.avgScore + '<small>分</small>';
+            if(data.totalCredit !== undefined) document.getElementById('totalCredit').innerHTML = data.totalCredit + '<small>分</small>';
+        });
+</script>
+</body>
+</html>

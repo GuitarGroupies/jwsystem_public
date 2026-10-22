@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #10b981;
+        }
+        .stat-card .title { color: #6b7280; font-size: 15px; }
+        .stat-card .number { color: #10b981; font-size: 32px; font-weight: 700; }
+        .stat-card .number small { font-size: 16px; color: #6b7280; font-weight: 400; margin-left: 4px; }
+
+        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 13px; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 16px 24px; border-bottom: 1px solid #f3f4f6; font-size: 15px; }
+        tbody tr:hover { background-color: #f9fafb; }
+        .student-name { font-weight: 500; }
+        .student-id { color: #6b7280; font-family: monospace; }
+        .class-badge { background: #ecfdf5; color: #047857; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+
+        .btn-del { background: transparent; color: #ef4444; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .btn-del:hover { background: #fef2f2; }
+
+        .empty-state { text-align: center; padding: 80px; color: #6b7280; background: #fff; border-radius: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="stat-card" id="summaryCard" style="display:none;">
+    <div class="title">您目前总共教了</div>
+    <div class="number"><span id="totalCount">0</span><small>名学生</small></div>
+</div>
+
+<div class="table-container" id="tableWrap" style="display:none;">
+    <table>
+        <thead>
+        <tr>
+            <th width="80">序号</th>
+            <th>学号 / 账号</th>
+            <th>姓名</th>
+            <th>所属班级</th>
+            <th width="120">操作</th>
+        </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+    </table>
+</div>
+
+<div class="empty-state" id="emptyTip" style="display:none;">
+    <div style="font-size: 48px; margin-bottom: 10px;">📭</div>
+    <div style="font-size: 18px; font-weight: 500; margin-bottom: 8px;">暂无学生数据</div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.top.location.href = '/login.html'; }
+
+    async function request(url, options = {}) {
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+
+    async function loadStudents() {
+        try {
+            const students = await request('/teacher/all-students');
+            if (!students || students.length === 0) {
+                document.getElementById('emptyTip').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('summaryCard').style.display = 'flex';
+            document.getElementById('tableWrap').style.display = 'block';
+            document.getElementById('totalCount').innerText = students.length;
+
+            const tbody = document.getElementById('studentTable'); tbody.innerHTML = '';
+            students.forEach((s, i) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="color: #9ca3af;">${i + 1}</td>
+                        <td class="student-id">${s.studentUsername}</td>
+                        <td class="student-name">${s.studentName}</td>
+                        <td><span class="class-badge">${s.className || '未分配'}</span></td>
+                        <td><button class="btn-del" onclick="deleteStudent(${s.studentId}, '${s.studentName}')">移出课程</button></td>
+                    </tr>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    // ✅ 修改提示语
+    async function deleteStudent(id, name) {
+        if (!confirm(`确定要将学生【${name}】移出您的课程吗？\n这将会删除他在您名下的选课记录和成绩。`)) return;
+
+        try {
+            const data = await request('/teacher/delete-student/' + id, { method: 'POST' });
+            alert(data.message);
+            if (data.success) loadStudents();
+        } catch (e) { alert('移出失败'); }
+    }
+
+    loadStudents();
+</script>
+</body>
+</html>

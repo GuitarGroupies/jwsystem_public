@@ -15,4 +15,5 @@ public class CourseSelection {
     private String studentName;      // 学生姓名
     private BigDecimal score;        // 成绩（可能为 null）
 
+    private String className;
 }

@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.students.jwsystem_public.mapper.ScoreMapper">
+
+    <insert id="insertScore" parameterType="com.students.jwsystem_public.entity.Score">
+        insert into score (student_id, course_id, score)
+        values (#{studentId}, #{courseId}, #{score})
+    </insert>
+
+    <update id="updateScore" parameterType="com.students.jwsystem_public.entity.Score">
+        update score
+        set score = #{score}
+        where student_id = #{studentId} and course_id = #{courseId}
+    </update>
+
+    <delete id="deleteByStudentId">
+        delete from score where student_id = #{studentId}
+    </delete>
+
+    <!-- ✅ 新增 -->
+    <delete id="deleteByStudentAndCourse">
+        delete from score where student_id = #{studentId} and course_id = #{courseId}
+    </delete>
+
     <select id="selectByStudentId" resultType="com.students.jwsystem_public.entity.Score">
         select
         s.id,
@@ -12,9 +33,15 @@
         u.real_name   as teacherName
         from score s
         inner join course c on s.course_id = c.id
-        left  join user u on c.teacher_id = u.id
+        left  join `user` u on c.teacher_id = u.id
         where s.student_id = #{studentId}
         order by c.id
-
     </select>
+
+    <select id="selectByStudentAndCourse" resultType="com.students.jwsystem_public.entity.Score">
+        select id, student_id as studentId, course_id as courseId, score
+        from score
+        where student_id = #{studentId} and course_id = #{courseId}
+    </select>
+
 </mapper>

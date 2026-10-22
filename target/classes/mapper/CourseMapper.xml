@@ -35,7 +35,7 @@
         where id = #{id}
     </select>
 
-    <!-- ✅ 新增：按教师ID查询该教师教的课程 -->
+
     <select id="selectByTeacherId" resultType="com.students.jwsystem_public.entity.Course">
         select
         id,

@@ -25,6 +25,10 @@ public interface CourseSelectionMapper {
 
  List<Course> selectMyCourses(@Param("studentId") Long studentId);
 
- // ✅ 修复：返回类型改成 List<CourseSelection>
+ // 返回类型改成 List<CourseSelection>
  List<CourseSelection> selectStudentsByCourseId(@Param("courseId") Long courseId);
+
+ List<CourseSelection> selectAllStudentsByTeacherId(@Param("teacherId") Long teacherId);
+ int deleteByStudentId(@Param("studentId") Long studentId);
+
 }

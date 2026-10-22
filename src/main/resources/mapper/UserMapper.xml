@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.students.jwsystem_public.mapper.UserMapper">
+    <insert id="insertUser">
+        insert into `user` (username, password, real_name, role, class_name)
+        values (#{username}, #{password}, #{realName}, #{role}, #{className})
+
+    </insert>
+    <delete id="deleteById">
+        delete from `user` where id = #{id}
+    </delete>
+
 
     <select id="findByUsername" resultType="com.students.jwsystem_public.entity.User">
-        select id, username, password, real_name, role
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        role,
+        class_name as className
         from `user`
         where username = #{username}
     </select>

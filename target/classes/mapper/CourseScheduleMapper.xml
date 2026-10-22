@@ -3,7 +3,7 @@
 
 <mapper namespace="com.students.jwsystem_public.mapper.CourseScheduleMapper">
 
-    <!-- 查询某学生已选课程的排课信息 -->
+    <!-- 学生端：按学生ID查课表 -->
     <select id="selectByStudentId" resultType="com.students.jwsystem_public.entity.CourseSchedule">
         select
         cs.id,
@@ -17,9 +17,28 @@
         u.real_name      as teacherName
         from course_schedule cs
         inner join course c on cs.course_id = c.id
+        left  join `user` u on c.teacher_id = u.id
         inner join course_selection sel on sel.course_id = cs.course_id
-        left  join user u on c.teacher_id = u.id
         where sel.student_id = #{studentId}
+        order by cs.week_day, cs.start_section
+    </select>
+
+    <!-- 教师端：按教师ID查课表 -->
+    <select id="selectByTeacherId" resultType="com.students.jwsystem_public.entity.CourseSchedule">
+        select
+        cs.id,
+        cs.course_id     as courseId,
+        cs.week_day      as weekDay,
+        cs.start_section as startSection,
+        cs.end_section   as endSection,
+        cs.location,
+        c.course_name    as courseName,
+        c.credit,
+        u.real_name      as teacherName
+        from course_schedule cs
+        inner join course c on cs.course_id = c.id
+        left  join `user` u on c.teacher_id = u.id
+        where c.teacher_id = #{teacherId}
         order by cs.week_day, cs.start_section
     </select>
 

@@ -27,4 +27,13 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
         }
         return courseScheduleMapper.selectByStudentId(user.getId());
     }
+
+    @Override
+    public List<CourseSchedule> getTeacherSchedule(String username) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        return courseScheduleMapper.selectByTeacherId(user.getId());
+    }
 }

@@ -31,6 +31,8 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                // ✅ 新增：允许 iframe 嵌套，解决拒绝连接问题
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -54,7 +56,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // ✅ 关键：把 JWT 过滤器加到用户名密码认证过滤器之前
+                // 把 JWT 过滤器加到用户名密码认证过滤器之前
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -6,4 +6,5 @@ import java.util.List;
 public interface CourseScheduleService {
     // 查询当前学生的课表
     List<CourseSchedule> getMySchedule(String username);
+    List<CourseSchedule> getTeacherSchedule(String username);
 }

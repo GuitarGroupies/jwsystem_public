@@ -2,154 +2,89 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>选课</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Microsoft YaHei"; background: #f0f2f5; padding: 20px; }
-        .header {
-            background: #1890ff; color: #fff; padding: 20px;
-            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { font-size: 20px; }
-        .header a { color: #fff; text-decoration: none; margin-right: 15px; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
 
+        /* Tab 切换栏 */
         .tabs {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            background: #fff;
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex; gap: 10px; background: #fff;
+            padding: 8px; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px;
         }
         .tab {
-            flex: 1;
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            cursor: pointer;
-            border-radius: 6px;
-            color: #666;
-            transition: all 0.2s;
+            flex: 1; padding: 12px 20px; border: none; background: transparent;
+            font-size: 15px; font-weight: 500; cursor: pointer;
+            border-radius: 8px; color: #6b7280; transition: all 0.2s;
         }
-        .tab:hover { background: #f0f2f5; }
-        .tab.active { background: #1890ff; color: #fff; font-weight: 600; }
+        .tab:hover { background: #f3f4f6; color: #1f2937; }
+        .tab.active { background: #3b82f6; color: #fff; }
 
-        table {
-            width: 100%; background: #fff; border-radius: 8px;
-            margin-top: 15px; border-collapse: collapse; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #fafafa; font-weight: 600; }
-        tr:hover { background: #f5f5f5; }
-        button {
-            padding: 6px 16px; border: none; border-radius: 4px;
-            cursor: pointer; font-size: 14px; margin-right: 5px;
-        }
-        .btn-select { background: #52c41a; color: #fff; }
-        .btn-select:hover { background: #389e0d; }
-        .btn-drop { background: #ff4d4f; color: #fff; }
-        .btn-drop:hover { background: #d9363e; }
+        /* 表格样式 */
+        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 13px; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 16px 24px; border-bottom: 1px solid #f3f4f6; font-size: 15px; }
+        tbody tr:hover { background-color: #f9fafb; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* 按钮与标签 */
+        button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .btn-select { background: #3b82f6; color: #fff; }
+        .btn-select:hover { background: #2563eb; }
+        .btn-drop { background: #ef4444; color: #fff; }
+        .btn-drop:hover { background: #dc2626; }
         .tag-selected {
-            display: inline-block; background: #fff1f0; color: #ff4d4f;
-            border: 1px solid #ffccc7; padding: 2px 8px; border-radius: 4px;
-            font-size: 12px; margin-left: 5px;
+            display: inline-block; background: #eff6ff; color: #3b82f6;
+            border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 4px;
+            font-size: 12px; margin-left: 8px; font-weight: 500;
         }
-        .empty-tip {
-            text-align: center; padding: 40px; color: #999;
-            background: #fff; border-radius: 8px; margin-top: 15px;
-        }
+        .empty-tip { text-align: center; padding: 60px; color: #9ca3af; background: #fff; border-radius: 12px; }
     </style>
 </head>
 <body>
-
-<div class="header">
-    <h1>📚 选课</h1>
-    <div>
-        <a href="/student.html">返回首页</a>
-        <a href="#" onclick="logout()">退出登录</a>
-    </div>
-</div>
 
 <div class="tabs">
     <button class="tab active" id="tabAll" onclick="switchTab('all')">全部课程</button>
     <button class="tab" id="tabMy" onclick="switchTab('my')">我选的课</button>
 </div>
 
-<div id="panelAll">
+<div id="panelAll" class="table-container">
     <table>
         <thead>
-        <tr>
-            <th>ID</th>
-            <th>课程名</th>
-            <th>教师</th>
-            <th>学分</th>
-            <th>容量</th>
-            <th>已选</th>
-            <th>操作</th>
-        </tr>
+        <tr><th>ID</th><th>课程名</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
         </thead>
         <tbody id="courseTable"></tbody>
     </table>
 </div>
 
-<div id="panelMy" style="display:none;">
+<div id="panelMy" style="display:none;" class="table-container">
     <table>
         <thead>
-        <tr>
-            <th>ID</th>
-            <th>课程名</th>
-            <th>教师</th>
-            <th>学分</th>
-            <th>容量</th>
-            <th>已选</th>
-            <th>操作</th>
-        </tr>
+        <tr><th>ID</th><th>课程名</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
         </thead>
         <tbody id="myCourseTable"></tbody>
     </table>
-    <div id="myEmptyTip" class="empty-tip" style="display:none;">
-        😶 你还没有选择任何课程，去「全部课程」选几门吧！
-    </div>
+</div>
+
+<div id="myEmptyTip" class="empty-tip" style="display:none;">
+    😶 你还没有选择任何课程，去「全部课程」选几门吧！
 </div>
 
 <script>
     const token = localStorage.getItem('token');
-    const role = (localStorage.getItem('role') || '').replace('ROLE_', '');
-
-    // ✅ 角色校验：非学生账号直接踢回登录页
-    if (!token) {
-        window.location.href = '/login.html';
-    } else if (role !== 'STUDENT') {
-        alert('无权访问学生端页面');
-        localStorage.clear();
-        window.location.href = '/login.html';
-    }
+    if (!token) { window.top.location.href = '/login.html'; } // 使用 top 防止在 iframe 内跳转
 
     async function request(url, options = {}) {
         const res = await fetch(url, {
             ...options,
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                ...(options.headers || {})
-            }
+            headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) }
         });
-
         if (res.status === 401 || res.status === 403) {
-            alert('登录已过期，请重新登录');
-            localStorage.clear();
-            window.location.href = '/login.html';
+            alert('登录已过期'); localStorage.clear(); window.top.location.href = '/login.html';
             throw new Error('未授权');
         }
-
-        if (!res.ok) {
-            const text = await res.text();
-            console.error('请求失败:', url, res.status, text);
-            throw new Error('服务器错误 ' + res.status);
-        }
-
+        if (!res.ok) throw new Error('服务器错误 ' + res.status);
         return res.json();
     }
 
@@ -158,18 +93,16 @@
         const tabMy = document.getElementById('tabMy');
         const panelAll = document.getElementById('panelAll');
         const panelMy = document.getElementById('panelMy');
+        const myEmptyTip = document.getElementById('myEmptyTip');
 
         if (type === 'all') {
-            tabAll.classList.add('active');
-            tabMy.classList.remove('active');
-            panelAll.style.display = 'block';
-            panelMy.style.display = 'none';
+            tabAll.classList.add('active'); tabMy.classList.remove('active');
+            panelAll.style.display = 'block'; panelMy.style.display = 'none';
+            myEmptyTip.style.display = 'none';
             loadCourses();
         } else {
-            tabMy.classList.add('active');
-            tabAll.classList.remove('active');
+            tabMy.classList.add('active'); tabAll.classList.remove('active');
             panelAll.style.display = 'none';
-            panelMy.style.display = 'block';
             loadMyCourses();
         }
     }
@@ -179,64 +112,51 @@
             const courses = await request('/course/list');
             const tbody = document.getElementById('courseTable');
             tbody.innerHTML = '';
-
             courses.forEach(c => {
                 const actionBtn = c.isSelected
                     ? `<button class="btn-drop" onclick="dropCourse(${c.id}, 'all')">退课</button>`
                     : `<button class="btn-select" onclick="selectCourse(${c.id})">选课</button>`;
-
-                const selectedTag = c.isSelected
-                    ? `<span class="tag-selected">已选</span>`
-                    : '';
-
+                const selectedTag = c.isSelected ? `<span class="tag-selected">已选</span>` : '';
                 tbody.innerHTML += `
                     <tr>
-                        <td>${c.id}</td>
-                        <td>${c.courseName}${selectedTag}</td>
+                        <td style="color: #9ca3af;">${c.id}</td>
+                        <td style="font-weight: 500;">${c.courseName} ${selectedTag}</td>
                         <td>${c.teacherName || '-'}</td>
                         <td>${c.credit}</td>
                         <td>${c.capacity}</td>
                         <td>${c.selectedCount}</td>
                         <td>${actionBtn}</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
-        } catch (e) {
-            console.error('加载课程失败:', e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     async function loadMyCourses() {
         try {
             const courses = await request('/course/select/my');
             const tbody = document.getElementById('myCourseTable');
-            const emptyTip = document.getElementById('myEmptyTip');
+            const panelMy = document.getElementById('panelMy');
+            const myEmptyTip = document.getElementById('myEmptyTip');
             tbody.innerHTML = '';
 
             if (courses.length === 0) {
-                emptyTip.style.display = 'block';
-                return;
+                panelMy.style.display = 'none'; myEmptyTip.style.display = 'block'; return;
             }
-            emptyTip.style.display = 'none';
+            panelMy.style.display = 'block'; myEmptyTip.style.display = 'none';
 
             courses.forEach(c => {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${c.id}</td>
-                        <td>${c.courseName}</td>
+                        <td style="color: #9ca3af;">${c.id}</td>
+                        <td style="font-weight: 500;">${c.courseName}</td>
                         <td>${c.teacherName || '-'}</td>
                         <td>${c.credit}</td>
                         <td>${c.capacity}</td>
                         <td>${c.selectedCount}</td>
-                        <td>
-                            <button class="btn-drop" onclick="dropCourse(${c.id}, 'my')">退课</button>
-                        </td>
-                    </tr>
-                `;
+                        <td><button class="btn-drop" onclick="dropCourse(${c.id}, 'my')">退课</button></td>
+                    </tr>`;
             });
-        } catch (e) {
-            console.error('加载我的课程失败:', e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     async function selectCourse(courseId) {
@@ -245,9 +165,7 @@
             const data = await request('/course/select/' + courseId, { method: 'POST' });
             alert(data.message);
             if (data.success) loadCourses();
-        } catch (e) {
-            alert('选课失败：' + e.message);
-        }
+        } catch (e) { alert('选课失败：' + e.message); }
     }
 
     async function dropCourse(courseId, from) {
@@ -259,14 +177,7 @@
                 if (from === 'my') loadMyCourses();
                 else loadCourses();
             }
-        } catch (e) {
-            alert('退课失败：' + e.message);
-        }
-    }
-
-    function logout() {
-        localStorage.clear();
-        window.location.href = '/login.html';
+        } catch (e) { alert('退课失败：' + e.message); }
     }
 
     loadCourses();

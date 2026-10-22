@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .profile-card {
+            background: #fff; border-radius: 12px; padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 30px; margin-bottom: 24px;
+        }
+        .avatar {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #6ee7b7);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 40px; font-weight: 600; flex-shrink: 0;
+        }
+        .profile-main { flex: 1; }
+        .profile-main .name { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .profile-main .username { color: #6b7280; font-size: 15px; margin-bottom: 12px; }
+        .role-tag { background: #ecfdf5; color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #d1fae5; }
+
+        .info-section { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+        .section-title { font-size: 16px; font-weight: 600; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; }
+        .info-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .info-item { padding: 20px; background: #f9fafb; border-radius: 10px; }
+        .info-item .label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+        .info-item .value { color: #1f2937; font-size: 18px; font-weight: 600; }
+
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .stat-card .num { font-size: 32px; font-weight: 700; color: #10b981; margin-bottom: 8px; }
+        .stat-card .num small { font-size: 15px; color: #6b7280; margin-left: 4px; }
+        .stat-card .label { color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="profile-card" id="profileCard" style="display:none;">
+    <div class="avatar" id="avatar">?</div>
+    <div class="profile-main">
+        <div class="name" id="realName">-</div>
+        <div class="username" id="username">-</div>
+        <span class="role-tag">教师</span>
+    </div>
+</div>
+
+<div class="info-section" id="infoSection" style="display:none;">
+    <div class="section-title">📋 账号信息</div>
+    <div class="info-list">
+        <div class="info-item"><div class="label">工号 / 用户名</div><div class="value" id="infoUsername">-</div></div>
+        <div class="info-item"><div class="label">真实姓名</div><div class="value" id="infoRealName">-</div></div>
+        <div class="info-item"><div class="label">角色</div><div class="value">教师</div></div>
+    </div>
+</div>
+
+<div class="stats" id="stats" style="display:none;">
+    <div class="stat-card"><div class="num" id="courseCount">0<small>门</small></div><div class="label">授课门数</div></div>
+    <div class="stat-card"><div class="num" id="totalStudents">0<small>人</small></div><div class="label">总学生人数</div></div>
+    <div class="stat-card"><div class="num" id="totalCredit">0<small>分</small></div><div class="label">总学分</div></div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    async function request(url, options = {}) {
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+    async function loadProfile() {
+        try {
+            const data = await request('/user/profile');
+            document.getElementById('avatar').innerText = (data.realName || data.username).charAt(0);
+            document.getElementById('realName').innerText = data.realName || '-';
+            document.getElementById('username').innerText = '工号：' + data.username;
+            document.getElementById('infoUsername').innerText = data.username || '-';
+            document.getElementById('infoRealName').innerText = data.realName || '-';
+            document.getElementById('courseCount').innerHTML = (data.courseCount || 0) + '<small>门</small>';
+            document.getElementById('totalStudents').innerHTML = (data.totalStudents || 0) + '<small>人</small>';
+            document.getElementById('totalCredit').innerHTML = (data.totalCredit || 0) + '<small>分</small>';
+
+            document.getElementById('profileCard').style.display = 'flex';
+            document.getElementById('infoSection').style.display = 'block';
+            document.getElementById('stats').style.display = 'grid';
+        } catch (e) { console.error(e); }
+    }
+    loadProfile();
+</script>
+</body>
+</html>

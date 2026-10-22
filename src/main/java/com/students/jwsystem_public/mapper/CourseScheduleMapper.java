@@ -10,4 +10,6 @@ import java.util.List;
 public interface CourseScheduleMapper {
     // 查询某学生已选课程的排课信息（用于课表展示）
     List<CourseSchedule> selectByStudentId(@Param("studentId") Long studentId);
+    List<CourseSchedule> selectByTeacherId(@Param("teacherId") Long teacherId);
+
 }
