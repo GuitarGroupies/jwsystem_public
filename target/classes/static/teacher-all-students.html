@@ -6,59 +6,87 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
 
+        /* 顶部统计与搜索栏 */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 20px; }
+
         .stat-card {
-            background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #10b981;
+            background: #fff; border-radius: 12px; padding: 20px 30px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; border-left: 4px solid #10b981;
+            flex-shrink: 0;
         }
-        .stat-card .title { color: #6b7280; font-size: 15px; }
-        .stat-card .number { color: #10b981; font-size: 32px; font-weight: 700; }
-        .stat-card .number small { font-size: 16px; color: #6b7280; font-weight: 400; margin-left: 4px; }
+        .stat-card .title { color: #6b7280; font-size: 15px; margin-right: 20px; }
+        .stat-card .number { color: #10b981; font-size: 28px; font-weight: 700; }
+        .stat-card .number small { font-size: 15px; color: #6b7280; font-weight: 400; margin-left: 4px; }
 
-        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 13px; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; }
-        td { padding: 16px 24px; border-bottom: 1px solid #f3f4f6; font-size: 15px; }
-        tbody tr:hover { background-color: #f9fafb; }
-        .student-name { font-weight: 500; }
-        .student-id { color: #6b7280; font-family: monospace; }
-        .class-badge { background: #ecfdf5; color: #047857; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+        .search-box {
+            flex: 1; max-width: 400px; background: #fff; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 0 20px;
+            display: flex; align-items: center; height: 60px;
+        }
+        .search-box input {
+            width: 100%; border: none; outline: none; font-size: 15px; background: transparent;
+        }
+        .search-icon { color: #9ca3af; font-size: 18px; margin-right: 10px; }
 
-        .btn-del { background: transparent; color: #ef4444; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .btn-del:hover { background: #fef2f2; }
+        /* 手风琴容器 */
+        .accordion { margin-bottom: 16px; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
 
-        .empty-state { text-align: center; padding: 80px; color: #6b7280; background: #fff; border-radius: 12px; }
+        /* 学院标题栏 */
+        .acc-header {
+            padding: 16px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            font-weight: 600; font-size: 16px; transition: background 0.2s; background: #fafafa;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .acc-header:hover { background: #f3f4f6; }
+        .acc-header.active { background: #ecfdf5; color: #10b981; }
+        .acc-header .arrow { transition: transform 0.3s; font-size: 12px; color: #9ca3af; }
+        .acc-header.active .arrow { transform: rotate(180deg); color: #10b981; }
+
+        /* 班级嵌套面板 */
+        .acc-body { display: none; padding: 0; }
+        .acc-body.show { display: block; }
+        .class-panel { border-top: 1px solid #f3f4f6; }
+        .class-panel:first-child { border-top: none; }
+        .class-header { padding: 14px 24px 14px 40px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; font-size: 15px; background: #fff; transition: background 0.2s;}
+        .class-header:hover { background: #f9fafb; }
+
+        /* 表格 */
+        table { width: 100%; border-collapse: collapse; text-align: left; background: #fff; }
+        th { background: #f9fafb; color: #6b7280; font-size: 13px; font-weight: 600; padding: 12px 24px 12px 56px; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 12px 24px 12px 56px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+
+        .btn-remove { padding: 6px 12px; background: transparent; color: #ef4444; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s;}
+        .btn-remove:hover { background: #fef2f2; }
+
+        .empty-tip { text-align: center; padding: 80px; color: #6b7280; background: #fff; border-radius: 12px; }
     </style>
 </head>
 <body>
 
-<div class="stat-card" id="summaryCard" style="display:none;">
-    <div class="title">您目前总共教了</div>
-    <div class="number"><span id="totalCount">0</span><small>名学生</small></div>
+<div class="top-bar" id="topBar" style="display:none;">
+    <div class="stat-card">
+        <div class="title">您目前总共教了</div>
+        <div class="number"><span id="totalCount">0</span><small>名学生</small></div>
+    </div>
+    <!-- ✅ 新增：搜索框 -->
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="输入学号或姓名进行快速搜索..." oninput="handleSearch()">
+    </div>
 </div>
 
-<div class="table-container" id="tableWrap" style="display:none;">
-    <table>
-        <thead>
-        <tr>
-            <th width="80">序号</th>
-            <th>学号 / 账号</th>
-            <th>姓名</th>
-            <th>所属班级</th>
-            <th width="120">操作</th>
-        </tr>
-        </thead>
-        <tbody id="studentTable"></tbody>
-    </table>
-</div>
+<div id="courseDataContainer"></div>
 
-<div class="empty-state" id="emptyTip" style="display:none;">
+<div class="empty-tip" id="emptyTip" style="display:none;">
     <div style="font-size: 48px; margin-bottom: 10px;">📭</div>
-    <div style="font-size: 18px; font-weight: 500; margin-bottom: 8px;">暂无学生数据</div>
+    <div>暂无学生数据或未搜索到匹配结果</div>
 </div>
 
 <script>
     const token = localStorage.getItem('token');
     if (!token) { window.top.location.href = '/login.html'; }
+
+    let allStudentsData = []; // 保存原始数据，用于搜索
 
     async function request(url, options = {}) {
         const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
@@ -66,44 +94,145 @@
         return res.json();
     }
 
-    async function loadStudents() {
+    // 1. 初始加载数据
+    async function initData() {
         try {
-            const students = await request('/teacher/all-students');
-            if (!students || students.length === 0) {
+            const data = await request('/teacher/all-students');
+            if (!Array.isArray(data)) return alert('后端数据加载失败：' + (data.message || '未知错误'));
+
+            allStudentsData = data;
+            document.getElementById('topBar').style.display = 'flex';
+
+            if (allStudentsData.length === 0) {
                 document.getElementById('emptyTip').style.display = 'block';
+                document.getElementById('totalCount').innerText = 0;
                 return;
             }
 
-            document.getElementById('summaryCard').style.display = 'flex';
-            document.getElementById('tableWrap').style.display = 'block';
-            document.getElementById('totalCount').innerText = students.length;
+            renderView(allStudentsData);
 
-            const tbody = document.getElementById('studentTable'); tbody.innerHTML = '';
-            students.forEach((s, i) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="color: #9ca3af;">${i + 1}</td>
-                        <td class="student-id">${s.studentUsername}</td>
-                        <td class="student-name">${s.studentName}</td>
-                        <td><span class="class-badge">${s.className || '未分配'}</span></td>
-                        <td><button class="btn-del" onclick="deleteStudent(${s.studentId}, '${s.studentName}')">移出课程</button></td>
-                    </tr>`;
-            });
         } catch (e) { console.error(e); }
     }
 
-    // ✅ 修改提示语
-    async function deleteStudent(id, name) {
-        if (!confirm(`确定要将学生【${name}】移出您的课程吗？\n这将会删除他在您名下的选课记录和成绩。`)) return;
+    // 2. 搜索事件触发
+    function handleSearch() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+        // 过滤数据（学号或姓名匹配）
+        const filteredData = allStudentsData.filter(s =>
+            s.studentUsername.toLowerCase().includes(keyword) ||
+            s.studentName.toLowerCase().includes(keyword)
+        );
+
+        renderView(filteredData);
+    }
+
+    // 3. 核心渲染逻辑（按院系 -> 班级分组展示）
+    function renderView(students) {
+        const container = document.getElementById('courseDataContainer');
+        container.innerHTML = '';
+
+        // 更新顶部统计数字
+        document.getElementById('totalCount').innerText = students.length;
+
+        if (students.length === 0) {
+            document.getElementById('emptyTip').style.display = 'block';
+            return;
+        }
+        document.getElementById('emptyTip').style.display = 'none';
+
+        // 分组数据结构
+        const groups = {};
+        students.forEach(s => {
+            const deptName = s.department || '未分配院系';
+            const className = s.className || '未分配班级';
+
+            if (!groups[deptName]) groups[deptName] = {};
+            if (!groups[deptName][className]) groups[deptName][className] = [];
+
+            groups[deptName][className].push(s);
+        });
+
+        let deptIndex = 0;
+        for (const deptName in groups) {
+            deptIndex++;
+            const deptId = 'dept-' + deptIndex;
+
+            // 计算该院系总人数
+            const deptTotal = Object.values(groups[deptName]).reduce((sum, arr) => sum + arr.length, 0);
+
+            let deptHtml = `
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc('${deptId}', this)">
+                    <span>🏢 ${deptName} <span style="font-size:12px; color:#9ca3af; font-weight:normal; margin-left:8px;">(共 ${deptTotal} 人)</span></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="acc-body" id="${deptId}">
+            `;
+
+            let classIndex = 0;
+            for (const className in groups[deptName]) {
+                classIndex++;
+                const classId = 'class-' + deptIndex + '-' + classIndex;
+                const classStudents = groups[deptName][className];
+
+                deptHtml += `
+                    <div class="class-panel">
+                        <div class="class-header" onclick="toggleAcc('${classId}', this)">
+                            <span>👨‍🎓 ${className} <span style="font-size:12px; color:#9ca3af; font-weight:normal; margin-left:8px;">(${classStudents.length} 人)</span></span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="acc-body" id="${classId}">
+                            <table>
+                                <thead><tr><th width="80">学号</th><th>姓名</th><th>操作</th></tr></thead>
+                                <tbody>
+                `;
+
+                classStudents.forEach(s => {
+                    deptHtml += `
+                        <tr>
+                            <td style="color:#6b7280;font-family:monospace;">${s.studentUsername}</td>
+                            <td style="font-weight:500;">${s.studentName}</td>
+                            <td><button class="btn-remove" onclick="removeStudentFromAll(${s.studentId}, '${s.studentName}')">移出我的课程</button></td>
+                        </tr>
+                    `;
+                });
+
+                deptHtml += `</tbody></table></div></div>`;
+            }
+
+            deptHtml += `</div></div>`;
+            container.innerHTML += deptHtml;
+        }
+    }
+
+    // 折叠控制
+    function toggleAcc(id, headerElement) {
+        const body = document.getElementById(id);
+        if (body.style.display === 'block') {
+            body.style.display = 'none';
+            headerElement.classList.remove('active');
+        } else {
+            body.style.display = 'block';
+            headerElement.classList.add('active');
+        }
+    }
+
+    // ✅ 移出操作（调用的是教师端全局移出接口，移出所有该老师的课）
+    async function removeStudentFromAll(id, name) {
+        if (!confirm(`确定要将学生【${name}】移出您的所有课程吗？\n这将会删除他在您名下的选课记录和成绩。`)) return;
 
         try {
             const data = await request('/teacher/delete-student/' + id, { method: 'POST' });
             alert(data.message);
-            if (data.success) loadStudents();
+            if (data.success) {
+                // 移出后重新拉取数据
+                initData();
+            }
         } catch (e) { alert('移出失败'); }
     }
 
-    loadStudents();
+    initData();
 </script>
 </body>
 </html>

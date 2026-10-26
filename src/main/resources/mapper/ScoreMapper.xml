@@ -21,6 +21,9 @@
     <delete id="deleteByStudentAndCourse">
         delete from score where student_id = #{studentId} and course_id = #{courseId}
     </delete>
+    <delete id="deleteByCourseId">
+        delete from score where course_id = #{courseId}
+    </delete>
 
     <select id="selectByStudentId" resultType="com.students.jwsystem_public.entity.Score">
         select

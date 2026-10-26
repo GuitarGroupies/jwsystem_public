@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #8b5cf6; flex: 1; margin-right: 20px; }
+        .stat-card .title { color: #6b7280; font-size: 15px; }
+        .stat-card .number { color: #8b5cf6; font-size: 32px; font-weight: 700; }
+        .stat-card .number small { font-size: 16px; color: #6b7280; font-weight: 400; margin-left: 4px; }
+
+        .btn-add { background: #8b5cf6; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2); }
+        .btn-add:hover { background: #7c3aed; transform: translateY(-2px); }
+
+        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 13px; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 16px 24px; border-bottom: 1px solid #f3f4f6; font-size: 15px; }
+        tbody tr:hover { background-color: #f9fafb; }
+
+        .course-name { font-weight: 500; }
+        .badge { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+        .badge-必修 { background: #eff6ff; color: #3b82f6; }
+        .badge-选修 { background: #f3f4f6; color: #4b5563; }
+        .btn-del { background: transparent; color: #ef4444; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .btn-del:hover { background: #fef2f2; }
+
+        .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: #fff; padding: 30px; border-radius: 12px; width: 420px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal h3 { margin-bottom: 20px; font-size: 20px; }
+        .modal .form-group { margin-bottom: 15px; }
+        .modal label { display: block; font-size: 14px; color: #6b7280; margin-bottom: 6px; }
+        .modal input, .modal select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-family: inherit; }
+        .modal input:focus, .modal select:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+        .btn-cancel { background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .btn-confirm { background: #8b5cf6; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar" id="toolbar" style="display:none;">
+    <div class="stat-card">
+        <div class="title">全校开设课程总数</div>
+        <div class="number"><span id="totalCount">0</span><small>门</small></div>
+    </div>
+    <button class="btn-add" onclick="openModal()">➕ 新增课程</button>
+</div>
+
+<div class="table-container" id="tableWrap" style="display:none;">
+    <table>
+        <thead>
+        <tr>
+            <th width="60">ID</th>
+            <th>课程名称</th>
+            <th>类型</th>
+            <th>开课院系</th>
+            <th>授课教师</th>
+            <th>学分</th>
+            <th>已选 / 容量</th>
+            <th width="100">操作</th>
+        </tr>
+        </thead>
+        <tbody id="courseTable"></tbody>
+    </table>
+</div>
+
+<!-- 新增课程弹窗 -->
+<div class="modal-mask" id="addModal">
+    <div class="modal">
+        <h3>新增课程</h3>
+        <div class="form-group">
+            <label>课程名称</label>
+            <input type="text" id="courseName" placeholder="如: 操作系统">
+        </div>
+
+        <div class="form-group">
+            <label>课程类型</label>
+            <select id="courseType" onchange="toggleClassSelect()">
+                <option value="选修">选修课（学生自行选课）</option>
+                <option value="必修">必修课（自动给班级分配）</option>
+            </select>
+        </div>
+
+        <!-- ✅ 新增：只有必修课才显示的班级下拉框 -->
+        <div class="form-group" id="targetClassGroup" style="display:none;">
+            <label>必修目标班级</label>
+            <select id="targetClassId">
+                <option value="">请先选择下方院系...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>开课院系</label>
+            <select id="deptId" onchange="loadClassesForDept()"></select>
+        </div>
+
+        <div class="form-group">
+            <label>授课教师</label>
+            <select id="teacherId"></select>
+        </div>
+        <div class="form-group">
+            <label>学分</label>
+            <input type="number" id="credit" value="3" min="1" max="10">
+        </div>
+        <div class="form-group">
+            <label>课程容量</label>
+            <input type="number" id="capacity" value="50" min="1" max="200">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn-confirm" onclick="submitCourse()">确认添加</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.top.location.href = '/login.html'; }
+
+    async function request(url, options = {}) {
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+
+    async function loadCourses() {
+        try {
+            const courses = await request('/admin/courses');
+            if (!Array.isArray(courses)) return alert('加载失败');
+
+            document.getElementById('toolbar').style.display = 'flex';
+            document.getElementById('tableWrap').style.display = 'block';
+            document.getElementById('totalCount').innerText = courses.length;
+
+            const tbody = document.getElementById('courseTable'); tbody.innerHTML = '';
+            courses.forEach(c => {
+                const typeClass = c.courseType === '必修' ? 'badge-必修' : 'badge-选修';
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="color: #9ca3af;">${c.id}</td>
+                        <td class="course-name">${c.courseName}</td>
+                        <td><span class="badge ${typeClass}">${c.courseType || '选修'}</span></td>
+                        <td>${c.department || '公共课'}</td>
+                        <td>${c.teacherName || '未分配'}</td>
+                        <td>${c.credit}</td>
+                        <td>${c.selectedCount} / ${c.capacity}</td>
+                        <td><button class="btn-del" onclick="deleteCourse(${c.id}, '${c.courseName}')">删除</button></td>
+                    </tr>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    // 切换必修/选修时，控制班级下拉框的显示隐藏
+    function toggleClassSelect() {
+        const type = document.getElementById('courseType').value;
+        const group = document.getElementById('targetClassGroup');
+        group.style.display = type === '必修' ? 'block' : 'none';
+    }
+
+    async function openModal() {
+        try {
+            const teachers = await request('/admin/teachers');
+            const select = document.getElementById('teacherId');
+            select.innerHTML = '<option value="">请选择教师...</option>';
+            teachers.forEach(t => {
+                select.innerHTML += `<option value="${t.id}">${t.realName} (${t.username})</option>`;
+            });
+
+            const depts = await request('/admin/depts');
+            const deptSelect = document.getElementById('deptId');
+            deptSelect.innerHTML = '<option value="">请选择开课院系...</option>';
+            depts.forEach(d => {
+                deptSelect.innerHTML += `<option value="${d.id}">${d.deptName}</option>`;
+            });
+            document.getElementById('addModal').style.display = 'flex';
+            toggleClassSelect(); // 初始化一次显示状态
+        } catch (e) { alert('加载下拉数据失败'); }
+    }
+
+    // 根据院系加载对应的班级
+    async function loadClassesForDept() {
+        const deptId = document.getElementById('deptId').value;
+        const classSelect = document.getElementById('targetClassId');
+
+        if (!deptId) {
+            classSelect.innerHTML = '<option value="">请先选择上方院系...</option>';
+            return;
+        }
+
+        try {
+            const classes = await request('/admin/classes/by-dept?deptId=' + deptId);
+            classSelect.innerHTML = '<option value="">请选择目标班级...</option>';
+            classes.forEach(c => {
+                classSelect.innerHTML += `<option value="${c.id}">${c.className}</option>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    function closeModal() {
+        document.getElementById('addModal').style.display = 'none';
+        document.getElementById('courseName').value = '';
+    }
+
+    async function submitCourse() {
+        const courseName = document.getElementById('courseName').value.trim();
+        const courseType = document.getElementById('courseType').value;
+        const deptId = document.getElementById('deptId').value;
+        const targetClassId = document.getElementById('targetClassId').value; // ✅ 获取目标班级
+        const teacherId = document.getElementById('teacherId').value;
+        const credit = document.getElementById('credit').value;
+        const capacity = document.getElementById('capacity').value;
+
+        if (!courseName || !teacherId || !deptId) { return alert('请填写完整信息'); }
+        if (courseType === '必修' && !targetClassId) { return alert('必修课必须选择目标班级！'); }
+
+        try {
+            const data = await request('/admin/add-course', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ courseName, courseType, deptId, targetClassId: targetClassId || null, teacherId, credit, capacity })
+            });
+            alert(data.message);
+            if (data.success) {
+                closeModal();
+                loadCourses();
+            }
+        } catch (e) { alert('添加失败'); }
+    }
+
+    async function deleteCourse(id, name) {
+        if (!confirm(`确定要彻底删除课程【${name}】吗？\n这将会清除该课程下的所有学生选课记录和成绩！`)) return;
+        try {
+            const data = await request('/admin/delete-course/' + id, { method: 'POST' });
+            alert(data.message);
+            if (data.success) loadCourses();
+        } catch (e) { alert('删除失败'); }
+    }
+
+    loadCourses();
+</script>
+</body>
+</html>

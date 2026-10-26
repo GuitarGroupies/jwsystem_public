@@ -14,6 +14,6 @@ public class CourseSelection {
     private String studentUsername;  // 学号
     private String studentName;      // 学生姓名
     private BigDecimal score;        // 成绩（可能为 null）
-
+    private String department;
     private String className;
 }

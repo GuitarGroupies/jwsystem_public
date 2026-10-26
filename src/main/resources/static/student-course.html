@@ -6,21 +6,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
 
-        /* Tab 切换栏 */
-        .tabs {
-            display: flex; gap: 10px; background: #fff;
-            padding: 8px; border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px;
-        }
-        .tab {
-            flex: 1; padding: 12px 20px; border: none; background: transparent;
-            font-size: 15px; font-weight: 500; cursor: pointer;
-            border-radius: 8px; color: #6b7280; transition: all 0.2s;
-        }
+        .tabs { display: flex; gap: 10px; background: #fff; padding: 8px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+        .tab { flex: 1; padding: 12px 20px; border: none; background: transparent; font-size: 15px; font-weight: 500; cursor: pointer; border-radius: 8px; color: #6b7280; transition: all 0.2s; }
         .tab:hover { background: #f3f4f6; color: #1f2937; }
         .tab.active { background: #3b82f6; color: #fff; }
 
-        /* 表格样式 */
         .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 13px; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid #e5e7eb; }
@@ -28,31 +18,31 @@
         tbody tr:hover { background-color: #f9fafb; }
         tbody tr:last-child td { border-bottom: none; }
 
-        /* 按钮与标签 */
         button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
         .btn-select { background: #3b82f6; color: #fff; }
         .btn-select:hover { background: #2563eb; }
         .btn-drop { background: #ef4444; color: #fff; }
         .btn-drop:hover { background: #dc2626; }
-        .tag-selected {
-            display: inline-block; background: #eff6ff; color: #3b82f6;
-            border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 4px;
-            font-size: 12px; margin-left: 8px; font-weight: 500;
-        }
+        .tag-selected { display: inline-block; background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px; font-weight: 500; }
+
+        .tag-type { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+        .type-必修 { background: #eff6ff; color: #3b82f6; }
+        .type-选修 { background: #f3f4f6; color: #4b5563; }
+
         .empty-tip { text-align: center; padding: 60px; color: #9ca3af; background: #fff; border-radius: 12px; }
     </style>
 </head>
 <body>
 
 <div class="tabs">
-    <button class="tab active" id="tabAll" onclick="switchTab('all')">全部课程</button>
+    <button class="tab active" id="tabAll" onclick="switchTab('all')">选课中心</button>
     <button class="tab" id="tabMy" onclick="switchTab('my')">我选的课</button>
 </div>
 
 <div id="panelAll" class="table-container">
     <table>
         <thead>
-        <tr><th>ID</th><th>课程名</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
+        <tr><th>ID</th><th>课程名</th><th>类型</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
         </thead>
         <tbody id="courseTable"></tbody>
     </table>
@@ -61,30 +51,26 @@
 <div id="panelMy" style="display:none;" class="table-container">
     <table>
         <thead>
-        <tr><th>ID</th><th>课程名</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
+        <tr><th>ID</th><th>课程名</th><th>类型</th><th>教师</th><th>学分</th><th>容量</th><th>已选</th><th>操作</th></tr>
         </thead>
         <tbody id="myCourseTable"></tbody>
     </table>
 </div>
 
 <div id="myEmptyTip" class="empty-tip" style="display:none;">
-    😶 你还没有选择任何课程，去「全部课程」选几门吧！
+    😶 你还没有选择任何选修课程，去左边选几门吧！
 </div>
 
 <script>
     const token = localStorage.getItem('token');
-    if (!token) { window.top.location.href = '/login.html'; } // 使用 top 防止在 iframe 内跳转
+    if (!token) { window.top.location.href = '/login.html'; }
 
     async function request(url, options = {}) {
-        const res = await fetch(url, {
-            ...options,
-            headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) }
-        });
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
         if (res.status === 401 || res.status === 403) {
-            alert('登录已过期'); localStorage.clear(); window.top.location.href = '/login.html';
-            throw new Error('未授权');
+            alert('登录已过期'); localStorage.clear(); window.top.location.href = '/login.html'; throw new Error('未授权');
         }
-        if (!res.ok) throw new Error('服务器错误 ' + res.status);
+        if (!res.ok) throw new Error('服务器错误');
         return res.json();
     }
 
@@ -97,19 +83,21 @@
 
         if (type === 'all') {
             tabAll.classList.add('active'); tabMy.classList.remove('active');
-            panelAll.style.display = 'block'; panelMy.style.display = 'none';
-            myEmptyTip.style.display = 'none';
+            panelAll.style.display = 'block'; panelMy.style.display = 'none'; myEmptyTip.style.display = 'none';
             loadCourses();
         } else {
             tabMy.classList.add('active'); tabAll.classList.remove('active');
-            panelAll.style.display = 'none';
-            loadMyCourses();
+            panelAll.style.display = 'none'; loadMyCourses();
         }
     }
 
+    // ✅ 1. 加载可选课程（只显示选修课）
     async function loadCourses() {
         try {
-            const courses = await request('/course/list');
+            const allCourses = await request('/course/list');
+            // 核心逻辑：过滤掉必修课
+            const courses = allCourses.filter(c => c.courseType !== '必修');
+
             const tbody = document.getElementById('courseTable');
             tbody.innerHTML = '';
             courses.forEach(c => {
@@ -117,10 +105,13 @@
                     ? `<button class="btn-drop" onclick="dropCourse(${c.id}, 'all')">退课</button>`
                     : `<button class="btn-select" onclick="selectCourse(${c.id})">选课</button>`;
                 const selectedTag = c.isSelected ? `<span class="tag-selected">已选</span>` : '';
+                const typeClass = c.courseType === '必修' ? 'type-必修' : 'type-选修';
+
                 tbody.innerHTML += `
                     <tr>
                         <td style="color: #9ca3af;">${c.id}</td>
                         <td style="font-weight: 500;">${c.courseName} ${selectedTag}</td>
+                        <td><span class="tag-type ${typeClass}">${c.courseType || '选修'}</span></td>
                         <td>${c.teacherName || '-'}</td>
                         <td>${c.credit}</td>
                         <td>${c.capacity}</td>
@@ -131,6 +122,7 @@
         } catch (e) { console.error(e); }
     }
 
+    // ✅ 2. 加载我选的课（这里保留所有已选，包括必修和选修）
     async function loadMyCourses() {
         try {
             const courses = await request('/course/select/my');
@@ -145,15 +137,22 @@
             panelMy.style.display = 'block'; myEmptyTip.style.display = 'none';
 
             courses.forEach(c => {
+                const typeClass = c.courseType === '必修' ? 'type-必修' : 'type-选修';
+                // 如果是必修课，不允许退课
+                const actionBtn = c.courseType === '必修'
+                    ? `<span style="color:#9ca3af; font-size:12px;">系统排课</span>`
+                    : `<button class="btn-drop" onclick="dropCourse(${c.id}, 'my')">退课</button>`;
+
                 tbody.innerHTML += `
                     <tr>
                         <td style="color: #9ca3af;">${c.id}</td>
                         <td style="font-weight: 500;">${c.courseName}</td>
+                        <td><span class="tag-type ${typeClass}">${c.courseType || '选修'}</span></td>
                         <td>${c.teacherName || '-'}</td>
                         <td>${c.credit}</td>
                         <td>${c.capacity}</td>
                         <td>${c.selectedCount}</td>
-                        <td><button class="btn-drop" onclick="dropCourse(${c.id}, 'my')">退课</button></td>
+                        <td>${actionBtn}</td>
                     </tr>`;
             });
         } catch (e) { console.error(e); }

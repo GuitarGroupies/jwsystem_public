@@ -11,7 +11,13 @@ public class Course {
     private Integer capacity;
     private Integer selectedCount;
     private String teacherName;
-
-    // 新增：标识当前登录学生是否已选这门课
     private Boolean isSelected;
+
+    // ✅ 必填：课程类型和开课院系
+    private String courseType;
+    private Long deptId;
+    private String department;
+
+    // ✅ 必填：必修课分配的目标班级
+    private Long targetClassId;
 }

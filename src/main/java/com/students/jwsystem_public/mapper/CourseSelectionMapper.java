@@ -31,4 +31,5 @@ public interface CourseSelectionMapper {
  List<CourseSelection> selectAllStudentsByTeacherId(@Param("teacherId") Long teacherId);
  int deleteByStudentId(@Param("studentId") Long studentId);
 
+ int deleteByCourseId(@Param("courseId") Long courseId);
 }

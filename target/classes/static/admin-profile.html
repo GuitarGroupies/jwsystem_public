@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .profile-card {
+            background: #fff; border-radius: 12px; padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 30px; margin-bottom: 24px;
+        }
+        .avatar {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 40px; font-weight: 600; flex-shrink: 0;
+        }
+        .profile-main { flex: 1; }
+        .profile-main .name { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .profile-main .username { color: #6b7280; font-size: 15px; margin-bottom: 12px; }
+        .role-tag { background: #f5f3ff; color: #8b5cf6; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #ddd6fe; }
+
+        .info-section { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .section-title { font-size: 16px; font-weight: 600; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; }
+
+        .info-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .info-item { padding: 20px; background: #f9fafb; border-radius: 10px; }
+        .info-item .label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+        .info-item .value { color: #1f2937; font-size: 18px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="profile-card" id="profileCard" style="display:none;">
+    <div class="avatar" id="avatar">?</div>
+    <div class="profile-main">
+        <div class="name" id="realName">-</div>
+        <div class="username" id="username">-</div>
+        <span class="role-tag">系统管理员</span>
+    </div>
+</div>
+
+<div class="info-section" id="infoSection" style="display:none;">
+    <div class="section-title">📋 账号信息</div>
+    <div class="info-list">
+        <div class="info-item"><div class="label">账号 / 用户名</div><div class="value" id="infoUsername">-</div></div>
+        <div class="info-item"><div class="label">真实姓名</div><div class="value" id="infoRealName">-</div></div>
+        <div class="info-item"><div class="label">系统角色</div><div class="value">管理员</div></div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.top.location.href = '/login.html'; }
+
+    async function request(url, options = {}) {
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+
+    async function loadProfile() {
+        try {
+            const data = await request('/user/profile');
+
+            // 渲染头部
+            document.getElementById('avatar').innerText = (data.realName || data.username).charAt(0);
+            document.getElementById('realName').innerText = data.realName || '-';
+            document.getElementById('username').innerText = '账号：' + data.username;
+            document.getElementById('profileCard').style.display = 'flex';
+
+            // 渲染详细信息
+            document.getElementById('infoUsername').innerText = data.username || '-';
+            document.getElementById('infoRealName').innerText = data.realName || '-';
+            document.getElementById('infoSection').style.display = 'block';
+
+        } catch (e) {
+            console.error('加载个人信息失败:', e);
+            alert('加载失败：' + e.message);
+        }
+    }
+    loadProfile();
+</script>
+</body>
+</html>

@@ -2,6 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
 <mapper namespace="com.students.jwsystem_public.mapper.CourseScheduleMapper">
+    <delete id="deleteByCourseId">
+        delete from course_schedule where course_id = #{courseId}
+    </delete>
 
     <!-- 学生端：按学生ID查课表 -->
     <select id="selectByStudentId" resultType="com.students.jwsystem_public.entity.CourseSchedule">

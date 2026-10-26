@@ -2,51 +2,63 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.students.jwsystem_public.mapper.CourseMapper">
 
-    <select id="getCourseList" resultType="com.students.jwsystem_public.entity.Course">
-        select c.id,
-        c.course_name   as courseName,
-        c.teacher_id    as teacherId,
-        c.credit,
-        c.capacity,
-        c.selected_count as selectedCount,
-        u.real_name     as teacherName
-        from course c
-        left join `user` u on c.teacher_id = u.id
-    </select>
+    <!-- ✅ 修改：加了 useGeneratedKeys，并且支持了 target_class_id -->
+    <insert id="insertCourse" parameterType="com.students.jwsystem_public.entity.Course" useGeneratedKeys="true" keyProperty="id">
+        insert into `course` (course_name, teacher_id, credit, capacity, selected_count, course_type, dept_id, target_class_id)
+        values (#{courseName}, #{teacherId}, #{credit}, #{capacity}, 0, #{courseType}, #{deptId}, #{targetClassId})
+    </insert>
 
+    <delete id="deleteCourse">
+        delete from `course` where id = #{id}
+    </delete>
+
+    <!-- 联表查询中带上 target_class_id -->
     <select id="getAllCourses" resultType="com.students.jwsystem_public.entity.Course">
-        select c.id,
-        c.course_name    as courseName,
-        c.teacher_id     as teacherId,
-        c.credit,
-        c.capacity,
-        c.selected_count as selectedCount,
-        u.real_name      as teacherName
-        from course c
+        select
+        c.id, c.course_name as courseName, c.teacher_id as teacherId,
+        c.credit, c.capacity, c.selected_count as selectedCount, c.course_type as courseType,
+        c.dept_id as deptId, c.target_class_id as targetClassId,
+        d.dept_name as department, u.real_name as teacherName
+        from `course` c
         left join `user` u on c.teacher_id = u.id
+        left join department d on c.dept_id = d.id
     </select>
 
     <select id="getCourseById" resultType="com.students.jwsystem_public.entity.Course">
-        select id, course_name as courseName, teacher_id as teacherId,
-        credit,
-        capacity,
-        selected_count as selectedCount
-        from course
-        where id = #{id}
+        select
+        id, course_name as courseName, teacher_id as teacherId,
+        credit, capacity, selected_count as selectedCount, course_type as courseType,
+        dept_id as deptId, target_class_id as targetClassId
+        from `course` where id = #{id}
     </select>
-
 
     <select id="selectByTeacherId" resultType="com.students.jwsystem_public.entity.Course">
         select
-        id,
-        course_name    as courseName,
-        teacher_id     as teacherId,
-        credit,
-        capacity,
-        selected_count as selectedCount
-        from course
-        where teacher_id = #{teacherId}
-        order by id
+        id, course_name as courseName, teacher_id as teacherId,
+        credit, capacity, selected_count as selectedCount, course_type as courseType,
+        dept_id as deptId, target_class_id as targetClassId
+        from `course` where teacher_id = #{teacherId} order by id
     </select>
+
+    <select id="countAllCourses" resultType="java.lang.Integer">
+        select count(*) from `course`
+    </select>
+
+    <!-- ========================================== -->
+    <!-- ✅ 新增：必修课批量分配相关 SQL -->
+    <!-- ========================================== -->
+
+    <!-- 批量插入选课记录：直接把该班级下的所有学生查出来插进去 -->
+    <insert id="batchInsertSelection">
+        insert into course_selection (student_id, course_id)
+        select u.id, #{courseId} from `user` u where u.class_id = #{classId} and u.role = 'STUDENT'
+    </insert>
+
+    <!-- 更新课程已选人数：通过 count 出选课表的人数，保证绝对准确 -->
+    <update id="updateCourseSelectedCount">
+        update `course` c set selected_count = (
+        select count(*) from course_selection cs where cs.course_id = c.id
+        ) where c.id = #{courseId}
+    </update>
 
 </mapper>

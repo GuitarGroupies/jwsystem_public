@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.students.jwsystem_public.mapper.BasicDataMapper">
+    <select id="findAllDepts" resultType="com.students.jwsystem_public.entity.Department">
+        select id, dept_name as deptName from department order by id
+    </select>
+    <insert id="insertDept">
+        insert into department (dept_name) values (#{deptName})
+    </insert>
+
+    <select id="findMajorsByDeptId" resultType="com.students.jwsystem_public.entity.Major">
+        select id, major_name as majorName, dept_id as deptId from major where dept_id = #{deptId}
+    </select>
+    <insert id="insertMajor">
+        insert into major (major_name, dept_id) values (#{majorName}, #{deptId})
+    </insert>
+
+    <select id="findClassesByMajorId" resultType="com.students.jwsystem_public.entity.SysClass">
+        select id, class_name as className, major_id as majorId from sys_class where major_id = #{majorId}
+    </select>
+    <select id="findClassesByDeptId" resultType="com.students.jwsystem_public.entity.SysClass">
+        select c.id, c.class_name as className, c.major_id as majorId
+        from sys_class c
+        inner join major m on c.major_id = m.id
+        where m.dept_id = #{deptId}
+    </select>
+    <insert id="insertClass">
+        insert into sys_class (class_name, major_id) values (#{className}, #{majorId})
+    </insert>
+
+
+    <update id="updateDept">
+        update department set dept_name = #{deptName} where id = #{id}
+    </update>
+
+    <update id="updateMajor">
+        update major set major_name = #{majorName} where id = #{id}
+    </update>
+
+    <update id="updateClass">
+        update sys_class set class_name = #{className} where id = #{id}
+    </update>
+</mapper>
