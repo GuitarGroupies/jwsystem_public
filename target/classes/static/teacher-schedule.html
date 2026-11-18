@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .summary { background: #fff; border-radius: 12px; padding: 24px; display: flex; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+        .summary-item { flex: 1; border-right: 1px solid #f3f4f6; padding-left: 20px; }
+        .summary-item:last-child { border-right: none; }
+        .summary-item .label { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
+        .summary-item .value { color: #10b981; font-size: 24px; font-weight: 700; }
+        .summary-item .value small { font-size: 14px; color: #6b7280; font-weight: 400; margin-left: 4px; }
+
+        .schedule-wrapper { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow-x: auto; }
+        table.schedule { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        table.schedule th { background: #f9fafb; color: #6b7280; padding: 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+        table.schedule td { border: 1px solid #f3f4f6; height: 70px; padding: 6px; vertical-align: top; text-align: center; transition: background 0.2s; }
+        table.schedule td:hover { background: #f9fafb; }
+        td.section-label { background: #f9fafb; font-weight: 600; color: #6b7280; width: 80px; vertical-align: middle !important; border: 1px solid #e5e7eb; }
+        td.course-cell { background: #ecfdf5; border-radius: 8px; border: 1px solid #d1fae5; }
+        .course-name { font-weight: 600; color: #047857; margin-bottom: 4px; font-size: 14px; }
+        .course-info { font-size: 12px; color: #059669; line-height: 1.4; }
+        .empty-tip { text-align: center; padding: 60px; color: #9ca3af; background: #fff; border-radius: 12px; }
+    </style>
+</head>
+<body>
+<div class="summary" id="summary" style="display:none;">
+    <div class="summary-item"><div class="label">授课门数</div><div class="value" id="courseCount">0<small>门</small></div></div>
+    <div class="summary-item"><div class="label">本周总课时</div><div class="value" id="totalSection">0<small>节</small></div></div>
+</div>
+<div class="schedule-wrapper" id="scheduleWrapper" style="display:none;">
+    <table class="schedule">
+        <thead>
+        <tr><th style="width:80px;">节次</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th></tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+    </table>
+</div>
+<div class="empty-tip" id="emptyTip" style="display:none;">😶 你目前没有排课任务</div>
+<script>
+    const token = localStorage.getItem('token');
+    const MAX_SECTION = 6, MAX_DAY = 7;
+    async function request(url) {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+    async function loadSchedule() {
+        try {
+            const schedules = await request('/teacher/schedule');
+            if (!Array.isArray(schedules) || schedules.length === 0) { document.getElementById('emptyTip').style.display = 'block'; return; }
+            document.getElementById('summary').style.display = 'flex';
+            document.getElementById('scheduleWrapper').style.display = 'block';
+
+            const courseSet = new Set(); let totalSection = 0;
+            schedules.forEach(s => { courseSet.add(s.courseId); totalSection += (s.endSection - s.startSection + 1); });
+            document.getElementById('courseCount').innerHTML = courseSet.size + '<small>门</small>';
+            document.getElementById('totalSection').innerHTML = totalSection + '<small>节</small>';
+
+            const grid = {};
+            schedules.forEach(s => { for (let sec = s.startSection; sec <= s.endSection; sec++) { grid[s.weekDay + '-' + sec] = s; } });
+            const tbody = document.getElementById('scheduleBody'); tbody.innerHTML = '';
+            for (let section = 1; section <= MAX_SECTION; section++) {
+                let row = `<tr><td class="section-label">第${section}节</td>`;
+                for (let day = 1; day <= MAX_DAY; day++) {
+                    const s = grid[day + '-' + section];
+                    if (!s) { row += '<td class="empty"></td>'; }
+                    else if (s.startSection === section) {
+                        const rowspan = s.endSection - s.startSection + 1;
+                        row += `<td class="course-cell" rowspan="${rowspan}">
+                            <div class="course-name">${s.courseName}</div>
+                            <div class="course-info">📍 ${s.location || '-'}</div>
+                        </td>`;
+                    }
+                }
+                row += '</tr>'; tbody.innerHTML += row;
+            }
+        } catch (e) { console.error(e); }
+    }
+    loadSchedule();
+</script>
+</body>
+</html>

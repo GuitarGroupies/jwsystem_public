@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei"; background: transparent; padding: 30px; color: #1f2937; }
+
+        .tabs { display: flex; gap: 10px; background: #fff; padding: 8px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+        .tab { flex: 1; padding: 12px 20px; border: none; background: transparent; font-size: 15px; font-weight: 500; cursor: pointer; border-radius: 8px; color: #6b7280; transition: all 0.2s; }
+        .tab.active { background: #8b5cf6; color: #fff; }
+
+        .panel { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: none; }
+        .panel.active { display: block; }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-add { background: #8b5cf6; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+
+        .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+
+        /* ✅ 升级卡片样式，悬浮出现编辑按钮 */
+        .item-card {
+            padding: 15px 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;
+            font-weight: 500; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;
+        }
+        .item-card:hover { background: #f3f4f6; border-color: #d1d5db; }
+        .item-card .edit-btn {
+            cursor: pointer; color: #8b5cf6; font-size: 14px; opacity: 0; transition: opacity 0.2s;
+        }
+        .item-card:hover .edit-btn { opacity: 1; }
+
+        .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: #fff; padding: 30px; border-radius: 12px; width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; color: #6b7280; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; }
+        .form-group input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab('dept', this)">🏢 院系管理</button>
+    <button class="tab" onclick="switchTab('major', this)">📚 专业管理</button>
+    <button class="tab" onclick="switchTab('class', this)">👨‍🎓 班级管理</button>
+</div>
+
+<!-- 院系面板 -->
+<div id="panel-dept" class="panel active">
+    <div class="header-bar">
+        <h3>全部院系</h3>
+        <button class="btn-add" onclick="openModal('dept')">新增院系</button>
+    </div>
+    <div class="list-grid" id="deptList"></div>
+</div>
+
+<!-- 专业面板 -->
+<div id="panel-major" class="panel">
+    <div class="header-bar">
+        <h3>专业列表</h3>
+        <div>
+            <select id="selectDeptForMajor" onchange="loadMajors()" style="padding:8px; border-radius:6px; border:1px solid #ccc; margin-right:10px;"></select>
+            <button class="btn-add" onclick="openModal('major')">新增专业</button>
+        </div>
+    </div>
+    <div class="list-grid" id="majorList"></div>
+</div>
+
+<!-- 班级面板 -->
+<div id="panel-class" class="panel">
+    <div class="header-bar">
+        <h3>班级列表</h3>
+        <div>
+            <select id="selectMajorForClass" onchange="loadClasses()" style="padding:8px; border-radius:6px; border:1px solid #ccc; margin-right:10px;"></select>
+            <button class="btn-add" onclick="openModal('class')">新增班级</button>
+        </div>
+    </div>
+    <div class="list-grid" id="classList"></div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-mask" id="addModal">
+    <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.top.location.href = '/login.html'; }
+
+    async function request(url, options = {}) {
+        const res = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + token, ...(options.headers || {}) } });
+        if (!res.ok) throw new Error('服务器错误');
+        return res.json();
+    }
+
+    function switchTab(type, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('panel-' + type).classList.add('active');
+
+        if(type === 'dept') loadDepts();
+        if(type === 'major') initMajorTab();
+        if(type === 'class') initClassTab();
+    }
+
+    // --- 院系逻辑 ---
+    async function loadDepts() {
+        const depts = await request('/admin/depts');
+        const list = document.getElementById('deptList');
+        // ✅ 加上编辑按钮
+        list.innerHTML = depts.map(d => `
+            <div class="item-card">
+                <span>${d.deptName}</span>
+                <span class="edit-btn" onclick="openModal('dept', ${d.id}, '${d.deptName}')">✏️ 编辑</span>
+            </div>
+        `).join('');
+    }
+
+    // --- 专业逻辑 ---
+    async function initMajorTab() {
+        const depts = await request('/admin/depts');
+        const select = document.getElementById('selectDeptForMajor');
+        select.innerHTML = '<option value="">请选择院系...</option>' + depts.map(d => `<option value="${d.id}">${d.deptName}</option>`).join('');
+        document.getElementById('majorList').innerHTML = '<div style="color:#999;">请先选择上方院系</div>';
+    }
+    async function loadMajors() {
+        const deptId = document.getElementById('selectDeptForMajor').value;
+        if(!deptId) return;
+        const majors = await request('/admin/majors?deptId=' + deptId);
+        const list = document.getElementById('majorList');
+        // ✅ 加上编辑按钮
+        list.innerHTML = majors.map(m => `
+            <div class="item-card">
+                <span>${m.majorName}</span>
+                <span class="edit-btn" onclick="openModal('major', ${m.id}, '${m.majorName}')">✏️ 编辑</span>
+            </div>
+        `).join('');
+    }
+
+    // --- 班级逻辑 ---
+    async function initClassTab() {
+        const depts = await request('/admin/depts');
+        const select = document.getElementById('selectMajorForClass');
+        let allMajors = [];
+        for(let d of depts) {
+            const ms = await request('/admin/majors?deptId=' + d.id);
+            allMajors = allMajors.concat(ms);
+        }
+        select.innerHTML = '<option value="">请选择专业...</option>' + allMajors.map(m => `<option value="${m.id}">${m.majorName}</option>`).join('');
+        document.getElementById('classList').innerHTML = '<div style="color:#999;">请先选择上方专业</div>';
+    }
+    async function loadClasses() {
+        const majorId = document.getElementById('selectMajorForClass').value;
+        if(!majorId) return;
+        const classes = await request('/admin/classes?majorId=' + majorId);
+        const list = document.getElementById('classList');
+        // ✅ 加上编辑按钮
+        list.innerHTML = classes.map(c => `
+            <div class="item-card">
+                <span>${c.className}</span>
+                <span class="edit-btn" onclick="openModal('class', ${c.id}, '${c.className}')">✏️ 编辑</span>
+            </div>
+        `).join('');
+    }
+
+    // ✅ 通用弹窗（支持新增和修改）
+    async function openModal(type, id = null, oldName = '') {
+        let html = '';
+        const isEdit = id !== null;
+        const title = isEdit ? '修改' : '新增';
+        const btnText = isEdit ? '确认修改' : '确认添加';
+
+        if(type === 'dept') {
+            html = `<h3>${title}院系</h3>
+                    <div class="form-group"><label>院系名称</label><input type="text" id="m-name" value="${oldName}"></div>
+                    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-add" onclick="submitData('dept', null, ${id})">${btnText}</button></div>`;
+        } else if (type === 'major') {
+            const deptId = document.getElementById('selectDeptForMajor').value;
+            if(!deptId && !isEdit) return alert('请先选择院系');
+            html = `<h3>${title}专业</h3>
+                    <div class="form-group"><label>专业名称</label><input type="text" id="m-name" value="${oldName}"></div>
+                    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-add" onclick="submitData('major', ${deptId}, ${id})">${btnText}</button></div>`;
+        } else {
+            const majorId = document.getElementById('selectMajorForClass').value;
+            if(!majorId && !isEdit) return alert('请先选择专业');
+            html = `<h3>${title}班级</h3>
+                    <div class="form-group"><label>班级名称</label><input type="text" id="m-name" value="${oldName}"></div>
+                    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">取消</button><button class="btn-add" onclick="submitData('class', ${majorId}, ${id})">${btnText}</button></div>`;
+        }
+        document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    // ✅ 提交数据（区分新增和修改）
+    async function submitData(type, parentId, id = null) {
+        const name = document.getElementById('m-name').value.trim();
+        if(!name) return alert('请填写名称');
+
+        const isEdit = id !== null;
+        let url = '', body = {};
+
+        if(type === 'dept') {
+            url = isEdit ? '/admin/update-dept' : '/admin/add-dept';
+            body = isEdit ? { id: id, deptName: name } : { deptName: name };
+        }
+        if(type === 'major') {
+            url = isEdit ? '/admin/update-major' : '/admin/add-major';
+            body = isEdit ? { id: id, majorName: name } : { majorName: name, deptId: parentId };
+        }
+        if(type === 'class') {
+            url = isEdit ? '/admin/update-class' : '/admin/add-class';
+            body = isEdit ? { id: id, className: name } : { className: name, majorId: parentId };
+        }
+
+        const data = await request(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        alert(data.message);
+        if(data.success) {
+            closeModal();
+            // 刷新对应的列表
+            if(type === 'dept') loadDepts();
+            if(type === 'major') loadMajors();
+            if(type === 'class') loadClasses();
+        }
+    }
+
+    loadDepts();
+</script>
+</body>
+</html>

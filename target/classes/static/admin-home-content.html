@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", sans-serif; background-color: transparent; padding: 30px; color: #1f2937; }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: #fff; border-radius: 16px; padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);
+            margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .welcome-text h1 { font-size: 28px; margin-bottom: 10px; }
+        .welcome-text p { font-size: 16px; opacity: 0.9; }
+        .welcome-icon { font-size: 80px; opacity: 0.8; }
+
+        /* 数据看板大卡片 */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .stat-card {
+            background: #fff; border-radius: 16px; padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 20px;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+
+        .stat-icon {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; flex-shrink: 0;
+        }
+        .icon-student { background: #eff6ff; color: #3b82f6; }
+        .icon-teacher { background: #ecfdf5; color: #10b981; }
+        .icon-course { background: #f5f3ff; color: #8b5cf6; }
+
+        .stat-info { flex: 1; }
+        .stat-info .label { color: #6b7280; font-size: 14px; margin-bottom: 8px; font-weight: 500; }
+        .stat-info .value { font-size: 32px; font-weight: 700; color: #1f2937; }
+        .stat-info .value small { font-size: 14px; font-weight: 400; color: #6b7280; margin-left: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="welcome-card">
+    <div class="welcome-text">
+        <h1>系统管理中心</h1>
+        <p>欢迎使用教务系统后台，您可以在这里查看全局数据、管理账号和课程。</p>
+    </div>
+    <div class="welcome-icon">⚙️</div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon icon-student">🎓</div>
+        <div class="stat-info">
+            <div class="label">全校学生总数</div>
+            <div class="value" id="studentCount">0<small>人</small></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-teacher">👨‍🏫</div>
+        <div class="stat-info">
+            <div class="label">全校教师总数</div>
+            <div class="value" id="teacherCount">0<small>人</small></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-course">📚</div>
+        <div class="stat-info">
+            <div class="label">全校开设课程</div>
+            <div class="value" id="courseCount">0<small>门</small></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) { window.top.location.href = '/login.html'; }
+
+    fetch('/admin/stats', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+        .then(res => res.json())
+        .then(data => {
+            // ✅ 修复：调用新的动画函数
+            animateValue("studentCount", data.studentCount || 0, "人");
+            animateValue("teacherCount", data.teacherCount || 0, "人");
+            animateValue("courseCount", data.courseCount || 0, "门");
+        })
+        .catch(err => console.error(err));
+
+    // ✅ 修复：重写数字动画，兼容数据为 0 的情况
+    function animateValue(id, end, unit) {
+        const obj = document.getElementById(id);
+
+        // 如果数据是 0 或者无效，直接显示，不执行滚动动画
+        if (!end || end <= 0) {
+            obj.innerHTML = `0<small>${unit}</small>`;
+            return;
+        }
+
+        let start = 0;
+        let duration = 1000; // 动画时长 1 秒
+        let startTime = null;
+
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+
+            // 计算当前滚动的数字
+            const current = Math.floor(progress * (end - start) + start);
+            obj.innerHTML = current + `<small>${unit}</small>`;
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                // 动画结束，确保最终显示的数字是准确的
+                obj.innerHTML = end + `<small>${unit}</small>`;
+            }
+        }
+
+        window.requestAnimationFrame(step);
+    }
+</script>
+</body>
+</html>
