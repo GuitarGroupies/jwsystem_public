@@ -1,7 +1,13 @@
 spring:
   application:
     name: jwsystem_public
-
+  data:
+    redis:
+      host: 192.168.180.100  # ⚠️ 换成你刚刚在 ip addr 里看到的那个固定 IP
+      port: 6379
+      database: 0
+      timeout: 5000ms
+      password: 123456       # ⚠️ 注意：你之前说密码设的是 bigdata，如果你的 redis.conf 里写的是 bigdata，这里就填 bigdata；如果没设密码，这一行直接删掉     # ⚠️ 注意：你之前说密码设的是 bigdata，如果你的 redis.conf 里写的是 bigdata，这里就填 bigdata；如果没设密码，这一行直接删掉
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/jwsystem_public?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8

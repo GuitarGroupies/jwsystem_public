@@ -1,7 +1,7 @@
 package com.students.jwsystem_public.mapper;
 
 import com.students.jwsystem_public.entity.Course;
-import com.students.jwsystem_public.entity.CourseSelection;  // ✅ 确保导入
+import com.students.jwsystem_public.entity.CourseSelection;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
